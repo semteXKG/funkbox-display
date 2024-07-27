@@ -1,0 +1,11 @@
+{
+    "idf.adapterTargetName": "esp32s3",
+    "idf.portWin": "COM8",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "i2c.h": "c",
+        "lv_demos.h": "c",
+        "compare": "c",
+        "cstdint": "c"
+    }
+}
