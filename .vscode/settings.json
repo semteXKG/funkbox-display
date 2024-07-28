@@ -6,6 +6,7 @@
         "i2c.h": "c",
         "lv_demos.h": "c",
         "compare": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "lvgl.h": "c"
     }
 }
