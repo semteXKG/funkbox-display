@@ -1,6 +1,5 @@
 #include "lvgl.h"
 #include "esp_log.h"
-#include "code_monospace_30.c"
 
 char* TAG = "main_draw";
 

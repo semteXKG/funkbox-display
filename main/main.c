@@ -16,10 +16,11 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "lvgl.h"
-#include "demos/lv_demos.h"
 
 #include "driver/i2c.h"
 #include "esp_lcd_touch_gt911.h"
+
+#include "wlan.h"
 
 #define I2C_MASTER_SCL_IO           9       /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           8       /*!< GPIO number used for I2C master data  */
@@ -81,24 +82,7 @@ static const char *TAG = "example";
 
 static SemaphoreHandle_t lvgl_mux = NULL;
 
-// we use two semaphores to sync the VSYNC event and the LVGL task, to avoid potential tearing effect
-#if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
-SemaphoreHandle_t sem_vsync_end;
-SemaphoreHandle_t sem_gui_ready;
-#endif
-
 extern void lvgl_draw_main_ui(lv_disp_t *disp);
-
-static bool example_on_vsync_event(esp_lcd_panel_handle_t panel, const esp_lcd_rgb_panel_event_data_t *event_data, void *user_data)
-{
-    BaseType_t high_task_awoken = pdFALSE;
-#if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
-    if (xSemaphoreTakeFromISR(sem_gui_ready, &high_task_awoken) == pdTRUE) {
-        xSemaphoreGiveFromISR(sem_vsync_end, &high_task_awoken);
-    }
-#endif
-    return high_task_awoken == pdTRUE;
-}
 
 static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
@@ -218,22 +202,11 @@ void app_main(void)
     static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     static lv_disp_drv_t disp_drv;      // contains callback functions
 
-#if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
-    ESP_LOGI(TAG, "Create semaphores");
-    sem_vsync_end = xSemaphoreCreateBinary();
-    assert(sem_vsync_end);
-    sem_gui_ready = xSemaphoreCreateBinary();
-    assert(sem_gui_ready);
-#endif
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(esp_netif_init());
 
-#if EXAMPLE_PIN_NUM_BK_LIGHT >= 0
-    ESP_LOGI(TAG, "Turn off LCD backlight");
-    gpio_config_t bk_gpio_config = {
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = 1ULL << EXAMPLE_PIN_NUM_BK_LIGHT
-    };
-    ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
-#endif
+    wlan_start();
 
     ESP_LOGI(TAG, "Install RGB LCD panel driver");
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -241,9 +214,6 @@ void app_main(void)
         .data_width = 16, // RGB565 in parallel mode, thus 16bit in width
         .psram_trans_align = 64,
         .num_fbs = EXAMPLE_LCD_NUM_FB,
-#if CONFIG_EXAMPLE_USE_BOUNCE_BUFFER
-        .bounce_buffer_size_px = 10 * EXAMPLE_LCD_H_RES,
-#endif
         .clk_src = LCD_CLK_SRC_DEFAULT,
         .disp_gpio_num = EXAMPLE_PIN_NUM_DISP_EN,
         .pclk_gpio_num = EXAMPLE_PIN_NUM_PCLK,
@@ -285,20 +255,9 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(esp_lcd_new_rgb_panel(&panel_config, &panel_handle));
 
-    ESP_LOGI(TAG, "Register event callbacks");
-    esp_lcd_rgb_panel_event_callbacks_t cbs = {
-        .on_vsync = example_on_vsync_event,
-    };
-    ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(panel_handle, &cbs, &disp_drv));
-
     ESP_LOGI(TAG, "Initialize RGB LCD panel");
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-
-#if EXAMPLE_PIN_NUM_BK_LIGHT >= 0
-    ESP_LOGI(TAG, "Turn on LCD backlight");
-    gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
-#endif
 
     ESP_ERROR_CHECK(i2c_master_init());
     ESP_LOGI(TAG, "I2C initialized successfully");
@@ -348,18 +307,10 @@ void app_main(void)
     lv_init();
     void *buf1 = NULL;
     void *buf2 = NULL;
-#if CONFIG_EXAMPLE_DOUBLE_FB
     ESP_LOGI(TAG, "Use frame buffers as LVGL draw buffers");
     ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 2, &buf1, &buf2));
     // initialize LVGL draw buffers
     lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
-#else
-    ESP_LOGI(TAG, "Allocate separate LVGL draw buffers from PSRAM");
-    buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
-    assert(buf1);
-    // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * 100);
-#endif // CONFIG_EXAMPLE_DOUBLE_FB
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
@@ -368,9 +319,8 @@ void app_main(void)
     disp_drv.flush_cb = example_lvgl_flush_cb;
     disp_drv.draw_buf = &disp_buf;
     disp_drv.user_data = panel_handle;
-#if CONFIG_EXAMPLE_DOUBLE_FB
     disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
-#endif
+
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
@@ -392,7 +342,7 @@ void app_main(void)
     esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
-
+    
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
     ESP_LOGI(TAG, "Create LVGL task");

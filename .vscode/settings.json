@@ -7,6 +7,7 @@
         "lv_demos.h": "c",
         "compare": "c",
         "cstdint": "c",
-        "lvgl.h": "c"
+        "lvgl.h": "c",
+        "wlan.h": "c"
     }
 }
