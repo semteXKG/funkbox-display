@@ -1,7 +1,9 @@
 #include "lvgl.h"
+#include "lvgl_ui.h"
 #include "esp_log.h"
+#include "stdio.h"
 
-char* TAG = "main_draw";
+char* TAG_MAIN = "main_draw";
 
 #define HEIGHT 480
 #define WIDTH 800
@@ -340,3 +342,22 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
     create_content(screen);
 }
 
+char time[20];
+void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
+    if (enabled) {
+        lv_obj_clear_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    long time_rem = (target - elapsed) / 1000;
+    bool is_neg = time_rem < 0;
+    
+    int minutes = time_rem / 60;
+    time_rem = time_rem - 60 * minutes;
+    
+    int seconds = time_rem;;
+    
+    sprintf(time, "%2d:%2d", minutes,seconds);
+    lv_label_set_text(remaining_time, time);
+}

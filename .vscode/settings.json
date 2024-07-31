@@ -8,6 +8,7 @@
         "compare": "c",
         "cstdint": "c",
         "lvgl.h": "c",
-        "wlan.h": "c"
+        "wlan.h": "c",
+        "type_traits": "c"
     }
 }

@@ -21,6 +21,8 @@
 #include "esp_lcd_touch_gt911.h"
 
 #include "wlan.h"
+#include "broadcast_socket.h"
+#include "lvgl_ui.h"
 
 #define I2C_MASTER_SCL_IO           9       /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           8       /*!< GPIO number used for I2C master data  */
@@ -81,8 +83,6 @@ static const char *TAG = "example";
 #define EXAMPLE_LVGL_TASK_PRIORITY     2
 
 static SemaphoreHandle_t lvgl_mux = NULL;
-
-extern void lvgl_draw_main_ui(lv_disp_t *disp);
 
 static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
@@ -207,6 +207,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_netif_init());
 
     wlan_start();
+    broadcast_socket_start();
 
     ESP_LOGI(TAG, "Install RGB LCD panel driver");
     esp_lcd_panel_handle_t panel_handle = NULL;

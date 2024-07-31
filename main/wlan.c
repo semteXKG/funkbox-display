@@ -9,7 +9,7 @@
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_BOTH
 #define EXAMPLE_H2E_IDENTIFIER ""
 
-static const char* TAG = "APP_WLAN";
+char* TAG = "APP_WLAN";
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
