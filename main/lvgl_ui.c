@@ -2,7 +2,7 @@
 #include "lvgl_ui.h"
 #include "esp_log.h"
 #include "stdio.h"
-
+#include "data.h"
 char* TAG_MAIN = "main_draw";
 
 #define HEIGHT 480
@@ -342,6 +342,22 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
     create_content(screen);
 }
 
+void draw_as_normal(lv_obj_t* box, lv_obj_t* text) {
+    lv_obj_set_style_bg_color(box, lv_cont_bg(), LV_PART_MAIN);
+    lv_obj_set_style_text_color(text, lv_color_white(), LV_PART_MAIN);
+}
+
+void draw_as_critical(lv_obj_t* box, lv_obj_t* text) {
+    lv_obj_set_style_bg_color(box, lv_color_crit(), LV_PART_MAIN);
+    lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
+}
+
+void lvgl_update_data() {
+    uint64_t elapsed = 0;
+    gptimer_get_raw_count(data()->stint.gptimer, &elapsed);
+    lvgl_set_stint_timer(data()->stint.currently_running, data()->stint.target, elapsed/1000);
+}
+
 char time[20];
 void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
     if (enabled) {
@@ -351,13 +367,20 @@ void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
     }
 
     long time_rem = (target - elapsed) / 1000;
-    bool is_neg = time_rem < 0;
-    
+    bool is_neg = false;
+    if (time_rem < 0) {
+        is_neg = true;
+        time_rem *= -1;
+        draw_as_critical(stint_rem_obj, remaining_time);
+    } else {
+        draw_as_normal(stint_rem_obj, remaining_time);
+    }
+
     int minutes = time_rem / 60;
     time_rem = time_rem - 60 * minutes;
     
     int seconds = time_rem;;
     
-    sprintf(time, "%2d:%2d", minutes,seconds);
+    sprintf(time, "%s%02d:%02d", is_neg ? "-": "", minutes ,seconds);
     lv_label_set_text(remaining_time, time);
 }

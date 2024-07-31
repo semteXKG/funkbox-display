@@ -1,6 +1,6 @@
 {
     "idf.adapterTargetName": "esp32s3",
-    "idf.portWin": "COM8",
+    "idf.portWin": "COM6",
     "idf.flashType": "UART",
     "files.associations": {
         "i2c.h": "c",
@@ -9,6 +9,12 @@
         "cstdint": "c",
         "lvgl.h": "c",
         "wlan.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "data.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "span": "c",
+        "chrono": "c"
     }
 }

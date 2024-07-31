@@ -4,6 +4,7 @@
 #include "socket.h"
 #include "esp_log.h"
 #include "lvgl_ui.h"
+#include "data.h"
 #define UDP_PORT 3333
 
 #define MULTICAST_TTL 1
@@ -20,7 +21,40 @@ void handle_stint(char* saveptr) {
     long target = atol(strtok_r(NULL, ";", &saveptr));
     long elapsed = atol(strtok_r(NULL, ";", &saveptr));
     ESP_LOGI(TAG_BC, "Stint: %d - %ld - %ld", enabled, target, elapsed);
-    lvgl_set_stint_timer(enabled, target, elapsed);
+    
+    data()->stint.currently_running = enabled;
+    data()->stint.elapsed = elapsed;
+    data()->stint.target = target;
+}
+
+void handle_lapno(char* saveptr) {
+    int lap_no = atoi(strtok_r(NULL, ";", &saveptr));
+    data()->lap_data.lap_no = lap_no;
+}
+
+void handle_lap(char* saveptr) {
+    long lapno = atol(strtok_r(NULL, ";", &saveptr));
+    long laptime = atol(strtok_r(NULL, ";", &saveptr));
+    switch (lapno) {
+        case 0: 
+            data()->lap_data.current_lap = laptime;
+        break;
+        case -1: 
+            data()->lap_data.best_lap = laptime;
+        break;
+        default: 
+            data()->lap_data.last_laps[lapno-1].lap_no = lapno;
+            data()->lap_data.last_laps[lapno-1].lap_time_ms = laptime;
+        break;
+
+    }
+}
+
+void handle_temp_pres(char* saveptr, struct car_sensor* sensor) {
+    long temp = atol(strtok_r(NULL, ";", &saveptr));
+    float pres = atof(strtok_r(NULL, ";", &saveptr));
+    sensor->preassure = pres;
+    sensor->temp = temp;
 }
 
 void parse_message(char* message) {
@@ -35,14 +69,36 @@ void parse_message(char* message) {
     for (token = strtok_r(message, "|", &saveptr1);
          token != NULL;
          token = strtok_r(NULL, "|", &saveptr1)) {   
-        
-        printf("token:%s\n", token);
-        
+                
         subtoken = strtok_r(token, ";", &saveptr2);
         if(strcmp(subtoken, "STNT") == 0) {
             handle_stint(saveptr2);
+        } else if (strcmp(subtoken, "LAP-NO") == 0) {
+            handle_lapno(saveptr2); 
+        } else if (strcmp(subtoken, "WATER") == 0) {
+            handle_temp_pres(saveptr2, &data()->water);
+        } else if (strcmp(subtoken, "OIL") == 0) {
+            handle_temp_pres(saveptr2,  &data()->oil);
+        } else if (strcmp(subtoken, "GAS") == 0) {
+            handle_temp_pres(saveptr2, &data()->gas);
+        }else if (strcmp(subtoken, "OIL_WARN") == 0) {
+            handle_temp_pres(saveptr2, oil_warn());
+        }else if (strcmp(subtoken, "WATER_WARN") == 0) {
+            handle_temp_pres(saveptr2, water_warn());
         }
     }
+
+    gptimer_handle_t gp_timer = data()->stint.gptimer;
+    if(data()->stint.currently_running && !data()->stint.gptimer_running) {
+        gptimer_start(gp_timer);
+        data()->stint.gptimer_running = true;
+    } else if (!data()->stint.currently_running && data()->stint.gptimer_running) {
+        gptimer_stop(gp_timer);
+        data()->stint.gptimer_running = false;
+    }
+
+    gptimer_set_raw_count(gp_timer, data()->stint.elapsed * 1000);
+    ESP_LOGI(TAG_BC, "finished parsing");
 }
 
 /* Add a socket to the IPV4 multicast group */

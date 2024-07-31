@@ -22,6 +22,7 @@
 
 #include "wlan.h"
 #include "broadcast_socket.h"
+#include "data.h"
 #include "lvgl_ui.h"
 
 #define I2C_MASTER_SCL_IO           9       /*!< GPIO number used for I2C master clock */
@@ -78,7 +79,7 @@ static const char *TAG = "example";
 
 #define EXAMPLE_LVGL_TICK_PERIOD_MS    2
 #define EXAMPLE_LVGL_TASK_MAX_DELAY_MS 500
-#define EXAMPLE_LVGL_TASK_MIN_DELAY_MS 1
+#define EXAMPLE_LVGL_TASK_MIN_DELAY_MS 100
 #define EXAMPLE_LVGL_TASK_STACK_SIZE   (4 * 1024)
 #define EXAMPLE_LVGL_TASK_PRIORITY     2
 
@@ -100,13 +101,13 @@ static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_
     lv_disp_flush_ready(drv);
 }
 
-static void example_increase_lvgl_tick(void *arg)
+static void increase_lvgl_tick(void *arg)
 {
     /* Tell LVGL how many milliseconds has elapsed */
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
-bool example_lvgl_lock(int timeout_ms)
+bool lvgl_lock(int timeout_ms)
 {
     // Convert timeout in milliseconds to FreeRTOS ticks
     // If `timeout_ms` is set to -1, the program will block until the condition is met
@@ -114,21 +115,22 @@ bool example_lvgl_lock(int timeout_ms)
     return xSemaphoreTakeRecursive(lvgl_mux, timeout_ticks) == pdTRUE;
 }
 
-void example_lvgl_unlock(void)
+void lvgl_unlock(void)
 {
     xSemaphoreGiveRecursive(lvgl_mux);
 }
 
-static void example_lvgl_port_task(void *arg)
+static void lvgl_port_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL task");
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     while (1) {
         // Lock the mutex due to the LVGL APIs are not thread-safe
-        if (example_lvgl_lock(-1)) {
+        if (lvgl_lock(-1)) {
             task_delay_ms = lv_timer_handler();
             // Release the mutex
-            example_lvgl_unlock();
+            lvgl_update_data();
+            lvgl_unlock();
         }
         if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) {
             task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
@@ -208,6 +210,7 @@ void app_main(void)
 
     wlan_start();
     broadcast_socket_start();
+    data_start();
 
     ESP_LOGI(TAG, "Install RGB LCD panel driver");
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -327,7 +330,7 @@ void app_main(void)
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
     const esp_timer_create_args_t lvgl_tick_timer_args = {
-        .callback = &example_increase_lvgl_tick,
+        .callback = &increase_lvgl_tick,
         .name = "lvgl_tick"
     };
 
@@ -347,12 +350,13 @@ void app_main(void)
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
     ESP_LOGI(TAG, "Create LVGL task");
-    xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
     ESP_LOGI(TAG, "Display LVGL Scatter Chart");
     // Lock the mutex due to the LVGL APIs are not thread-safe
-    if (example_lvgl_lock(-1)) {
+    if (lvgl_lock(-1)) {
         lvgl_draw_main_ui(disp);
-        example_lvgl_unlock();
+        lvgl_unlock();
     }
+    
+    xTaskCreate(lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 }
