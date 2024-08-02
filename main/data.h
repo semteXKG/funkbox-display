@@ -57,3 +57,5 @@ struct car_sensor* water_warn();
 void data_start();
 
 struct time_str convert_millis_to_time(long millis);
+
+bool should_blink();

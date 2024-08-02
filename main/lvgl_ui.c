@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "data.h"
 #include "math.h"
+#include "esp_timer.h"
 char* TAG_MAIN = "main_draw";
 
 #define HEIGHT 480
@@ -351,6 +352,13 @@ void draw_as_normal(lv_obj_t* box, lv_obj_t* text) {
     lv_obj_set_style_text_color(text, lv_color_white(), LV_PART_MAIN);
 }
 
+
+void draw_as_warn(lv_obj_t* box, lv_obj_t* text) {
+    lv_obj_set_style_bg_color(box, lv_color_warn(), LV_PART_MAIN);
+    lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
+}
+
+
 void draw_as_critical(lv_obj_t* box, lv_obj_t* text) {
     lv_obj_set_style_bg_color(box, lv_color_crit(), LV_PART_MAIN);
     lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
@@ -371,29 +379,36 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
     lv_label_set_text_fmt(ll_time_diff, "%s%1d.%02d", (diff < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
 }
 
-void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
-    if (enabled) {
-        lv_obj_clear_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_add_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
+void lvgl_set_stint_timer(bool running, long target, long elapsed) {
+    //lv_obj_clear_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
+    if (!running) {
+        lv_label_set_text(remaining_time, "PAUSE");
+        return; 
     }
 
-    long time_rem = round((double)(target - elapsed) / 1000);
+    long time_rem = round((double)(target - elapsed));
     bool is_neg = false;
-    if (time_rem < 0) {
-        is_neg = true;
-        time_rem *= -1;
-        draw_as_critical(stint_rem_obj, remaining_time);
-    } else {
-        draw_as_normal(stint_rem_obj, remaining_time);
-    }
+    double elapsed_percent = target == 0 ? 0 : (double)((double)elapsed / target);
 
-    int minutes = time_rem / 60;
-    time_rem = time_rem - 60 * minutes;
-    
-    int seconds = time_rem;;
-    
-    lv_label_set_text_fmt(remaining_time, "%s%02d:%02d", is_neg ? "-": "", minutes ,seconds);
+    if(elapsed_percent <= 0.5) {
+        draw_as_normal(stint_rem_obj, remaining_time);
+    } else if (elapsed_percent < 0.8) {
+        draw_as_warn(stint_rem_obj, remaining_time);
+    } else {
+        draw_as_critical(stint_rem_obj, remaining_time);
+        if(elapsed_percent > 1) {
+            is_neg = true;
+            time_rem *= -1;
+            int aligned = round((double)time_rem / 1000);
+            if (aligned % 2 == 0) {
+                draw_as_normal(stint_rem_obj, remaining_time);
+            }
+        }
+    }
+   
+    struct time_str time = convert_millis_to_time(time_rem);
+    time.seconds = time.seconds + round((double)time.milliseconds / 1000);
+    lv_label_set_text_fmt(remaining_time, "%s%02d:%02d", is_neg ? "-": "", time.minutes, time.seconds);
 }
 
 void lvgl_set_temperatures(struct mcu_data data) {

@@ -1,5 +1,6 @@
 #include <data.h>
 #include <driver/gptimer.h>
+#include <esp_timer.h>
 
 struct mcu_data backing_data;
 struct car_sensor backing_oil_warn;
@@ -44,3 +45,8 @@ struct time_str convert_millis_to_time(long millis) {
     };
     return conversion;
 }
+
+bool should_blink() {
+    return (esp_timer_get_time() / 2000000) % 2 == 0;
+}
+
