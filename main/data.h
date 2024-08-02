@@ -44,8 +44,16 @@ struct mcu_data {
     struct lap_data lap_data;  
 };
 
+struct time_str {
+    int milliseconds;
+    int seconds;
+    int minutes;
+};
+
 struct mcu_data* data();
 struct car_sensor* oil_warn();
 struct car_sensor* water_warn();
 
 void data_start();
+
+struct time_str convert_millis_to_time(long millis);

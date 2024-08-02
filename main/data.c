@@ -28,3 +28,19 @@ void data_start() {
     backing_data.stint.gptimer = gptimer;
     backing_data.stint.gptimer_running = false;
 }
+
+struct time_str convert_millis_to_time(long millis) {
+    if (millis < 0) {
+        millis *= -1;
+    }
+    int minutes = millis / (60 * 1000);
+    int rem = millis - (minutes * 60 * 1000);
+    int seconds = rem / 1000;
+    int msecs = rem - seconds * 1000;
+    struct time_str conversion = {
+        .milliseconds = msecs,
+        .seconds = seconds,
+        .minutes = minutes
+    };
+    return conversion;
+}

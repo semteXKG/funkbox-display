@@ -52,7 +52,7 @@ void handle_lap(char* saveptr) {
 
 void handle_temp_pres(char* saveptr, struct car_sensor* sensor) {
     long temp = atol(strtok_r(NULL, ";", &saveptr));
-    float pres = atof(strtok_r(NULL, ";", &saveptr));
+    double pres = atof(strtok_r(NULL, ";", &saveptr));
     sensor->preassure = pres;
     sensor->temp = temp;
 }
@@ -73,6 +73,8 @@ void parse_message(char* message) {
         subtoken = strtok_r(token, ";", &saveptr2);
         if(strcmp(subtoken, "STNT") == 0) {
             handle_stint(saveptr2);
+        } else if (strcmp(subtoken, "LAP") == 0) {
+            handle_lap(saveptr2);
         } else if (strcmp(subtoken, "LAP-NO") == 0) {
             handle_lapno(saveptr2); 
         } else if (strcmp(subtoken, "WATER") == 0) {

@@ -3,6 +3,7 @@
 #include "esp_log.h"
 #include "stdio.h"
 #include "data.h"
+#include "math.h"
 char* TAG_MAIN = "main_draw";
 
 #define HEIGHT 480
@@ -89,22 +90,25 @@ void create_lap_timer(lv_obj_t* screen) {
     apply_styling(lap_timer_obj, LV_BORDER_SIDE_RIGHT);
 
     pb_time = lv_label_create(lap_timer_obj);
-    lv_obj_set_style_text_font(pb_time, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(pb_time, &lv_font_montserrat_40, 0);
     lv_label_set_text(pb_time, "1:16.10");
     lv_obj_set_style_text_color(pb_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(pb_time, LV_ALIGN_TOP_MID, 0, 0);
 
     ll_time = lv_label_create(lap_timer_obj);
-    lv_obj_set_style_text_font(ll_time, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(ll_time, &lv_font_montserrat_40, 0);
     lv_label_set_text(ll_time, "1:17.66");
     lv_obj_set_style_text_color(ll_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(ll_time, LV_ALIGN_CENTER, 0, 0);
 
     ll_time_diff = lv_label_create(lap_timer_obj);
-    lv_obj_set_style_text_font(ll_time_diff, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(ll_time_diff, &lv_font_montserrat_40, 0);
     lv_label_set_text(ll_time_diff, "-0.06");
     lv_obj_set_style_text_color(ll_time_diff, lv_color_ok(), LV_PART_MAIN);
-    lv_obj_align_to(ll_time_diff, ll_time, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+    lv_obj_set_style_text_align(ll_time_diff, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(ll_time_diff, LV_ALIGN_BOTTOM_MID, 0, 0);
+
+    //lv_obj_align_to(ll_time_diff, ll_time, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
 }
 
 
@@ -352,13 +356,21 @@ void draw_as_critical(lv_obj_t* box, lv_obj_t* text) {
     lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
 }
 
-void lvgl_update_data() {
-    uint64_t elapsed = 0;
-    gptimer_get_raw_count(data()->stint.gptimer, &elapsed);
-    lvgl_set_stint_timer(data()->stint.currently_running, data()->stint.target, elapsed/1000);
+void lvgl_set_last_laps(struct lap_data lap_data) {
+    struct time_str pb = convert_millis_to_time(lap_data.best_lap);
+    lv_label_set_text_fmt(pb_time, "%1d:%02d.%02d", pb.minutes, pb.seconds, pb.milliseconds/10);
+    
+    struct time_str ll = convert_millis_to_time(lap_data.last_laps[0].lap_time_ms);
+    lv_label_set_text_fmt(ll_time, "%1d:%02d.%02d", ll.minutes, ll.seconds, ll.milliseconds/10);
+
+    long diff = lap_data.last_laps[0].lap_time_ms - lap_data.last_laps[1].lap_time_ms;
+    struct time_str ll_diff = convert_millis_to_time(diff);
+
+    lv_obj_set_style_text_color(ll_time_diff, (diff > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
+
+    lv_label_set_text_fmt(ll_time_diff, "%s%1d.%02d", (diff < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
 }
 
-char time[20];
 void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
     if (enabled) {
         lv_obj_clear_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
@@ -366,7 +378,7 @@ void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
         lv_obj_add_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
     }
 
-    long time_rem = (target - elapsed) / 1000;
+    long time_rem = round((double)(target - elapsed) / 1000);
     bool is_neg = false;
     if (time_rem < 0) {
         is_neg = true;
@@ -381,6 +393,40 @@ void lvgl_set_stint_timer(bool enabled, long target, long elapsed) {
     
     int seconds = time_rem;;
     
-    sprintf(time, "%s%02d:%02d", is_neg ? "-": "", minutes ,seconds);
-    lv_label_set_text(remaining_time, time);
+    lv_label_set_text_fmt(remaining_time, "%s%02d:%02d", is_neg ? "-": "", minutes ,seconds);
+}
+
+void lvgl_set_temperatures(struct mcu_data data) {
+    char temp[10];
+    lv_label_set_text_fmt(oil_temp_message, "%d", data.oil.temp);
+    sprintf(temp, "%0.1f", data.oil.preassure);
+    lv_label_set_text(oil_pres_message, temp);
+
+    lv_label_set_text_fmt(h2o_temp_message, "%d", data.water.temp);
+    
+    sprintf(temp, "%0.1f", data.gas.preassure);
+    lv_label_set_text(gas_pres_message, temp);    
+
+    if(oil_warn()->preassure > data.oil.preassure || oil_warn()->temp < data.oil.temp) {
+        draw_as_critical(oil_obj, oil_temp_message);
+        draw_as_critical(oil_obj, oil_pres_message);
+    } else {
+        draw_as_normal(oil_obj, oil_temp_message);
+        draw_as_normal(oil_obj, oil_pres_message);
+    }
+
+    if (water_warn()->temp <  data.water.temp) {
+        draw_as_critical(h2o_obj, h2o_temp_message);
+
+    } else {
+        draw_as_normal(h2o_obj, h2o_temp_message);
+    }
+}
+
+void lvgl_update_data() {
+    uint64_t elapsed = 0;
+    gptimer_get_raw_count(data()->stint.gptimer, &elapsed);
+    lvgl_set_stint_timer(data()->stint.currently_running, data()->stint.target, elapsed/1000);
+    lvgl_set_last_laps(data()->lap_data);
+    lvgl_set_temperatures(*data());
 }
