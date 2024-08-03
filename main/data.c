@@ -28,6 +28,15 @@ void data_start() {
     gptimer_enable(gptimer);
     backing_data.stint.gptimer = gptimer;
     backing_data.stint.gptimer_running = false;
+
+    gptimer_handle_t lap_running_timer = NULL;
+    gptimer_new_timer(&timer_config, &lap_running_timer);
+    gptimer_enable(lap_running_timer);
+    gptimer_start(lap_running_timer);
+
+    backing_data.lap_data.current_lap = lap_running_timer;
+    backing_data.lap_data.current_lap_running = false;
+
 }
 
 struct time_str convert_millis_to_time(long millis) {

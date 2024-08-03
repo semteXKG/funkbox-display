@@ -15,7 +15,8 @@ struct car_sensor {
 };
 
 struct stint_data {
-    bool currently_running;
+    bool running;
+    bool enabled;
     long target;
     long elapsed;
     gptimer_handle_t gptimer;
@@ -32,7 +33,8 @@ struct lap
 struct lap_data {
     int lap_no;
     long best_lap;
-    long current_lap;
+    bool current_lap_running;
+    gptimer_handle_t current_lap;
     struct lap last_laps[5];
 };
 

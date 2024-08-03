@@ -14,7 +14,7 @@ char* TAG_MAIN = "main_draw";
 #define BORDER_SIZE 3
 
 lv_style_t style;
-lv_style_t style_spacing;
+lv_style_t style_padding;
 lv_obj_t* stint_rem_obj;
 lv_obj_t* lap_timer_obj;
 lv_obj_t* radio_obj;
@@ -28,6 +28,11 @@ lv_obj_t* oil_desc_obj;
 lv_obj_t* h2o_desc_obj;
 lv_obj_t* gas_desc_obj;
 
+lv_obj_t* main_laps_obj;
+lv_obj_t* main_stint_obj;
+lv_obj_t* main_events_obj;
+
+
 lv_obj_t* remaining_time;
 lv_obj_t* pb_time;
 lv_obj_t* ll_time;
@@ -39,6 +44,11 @@ lv_obj_t* h2o_temp_message;
 lv_obj_t* oil_temp_message;
 lv_obj_t* oil_pres_message;
 lv_obj_t* gas_pres_message; 
+
+
+lv_obj_t* lap_number_labels[5];
+lv_obj_t* lap_time_labels[5];
+lv_obj_t* lap_diff_labels[5];
 
 lv_color_t lv_color_ok() {
     return lv_color_hex(0x00FF00);
@@ -63,9 +73,13 @@ lv_color_t lv_main_bg() {
     return lv_color_hex(0x2A2F2F);
 }
 
+lv_color_t lv_border_color() {
+    return lv_color_hex(0xCFCFCF);
+}
+
 void apply_styling(lv_obj_t* obj, lv_border_side_t additional_side)  {
     lv_obj_set_style_bg_color (obj, lv_cont_bg(), LV_PART_MAIN);
-    lv_obj_set_style_border_color(obj, lv_color_hex(0xCFCFCF), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj, lv_border_color(), LV_PART_MAIN);
     lv_obj_set_style_border_width(obj, 3, LV_PART_MAIN);
     lv_obj_set_style_border_side(obj, additional_side | LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
@@ -316,6 +330,64 @@ void create_gas_status(lv_obj_t* screen) {
     lv_obj_align(gas_pres_currency, LV_ALIGN_RIGHT_MID, 0, 0);
 }
 
+void create_lap_child_element(lv_obj_t* container, int i) {
+
+    lv_obj_t* sub_obj = lv_obj_create(container);
+    lv_obj_set_size(sub_obj, 800 - 2*205, HEIGHT/5);
+    lv_obj_align(sub_obj, LV_ALIGN_TOP_MID, 0, (HEIGHT/5) * i);
+    lv_obj_set_style_bg_color(sub_obj, lv_main_bg(), LV_PART_MAIN);
+    lv_obj_set_style_border_width(sub_obj, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(sub_obj, lv_border_color(), 0);
+    lv_obj_set_style_border_side(sub_obj, LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);
+
+    lv_obj_t* lap_time = lv_label_create(sub_obj);
+    lv_label_set_text_fmt(lap_time, "1:02.03");
+    lv_obj_set_style_text_color(lap_time, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_align(lap_time, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_font(lap_time, &lv_font_montserrat_38, LV_PART_MAIN);
+
+    lap_time_labels[i] = lap_time;
+    
+    lv_obj_t* lap_no = lv_label_create(sub_obj);
+    lv_label_set_text_fmt(lap_no, "%d", i);
+    lv_obj_set_style_text_color(lap_no, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_align(lap_no, LV_ALIGN_LEFT_MID);
+    lv_obj_set_style_text_font(lap_no, &lv_font_montserrat_28, LV_PART_MAIN);
+    lap_number_labels[i] = lap_no;
+    // no lap + diff as first is LIVE
+    if (i == 0) {
+        return;
+    }
+
+    lv_obj_t* lap_diff = lv_label_create(sub_obj);
+    lv_label_set_text_fmt(lap_diff, "%d", i);
+    lv_obj_set_style_text_color(lap_diff, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_align(lap_diff, LV_ALIGN_RIGHT_MID);
+    lv_obj_set_style_text_font(lap_diff, &lv_font_montserrat_28, LV_PART_MAIN);
+    lap_diff_labels[i] = lap_diff;
+}
+
+void create_main_laps(lv_obj_t* screen) {
+    lv_style_t style;
+    lv_style_init(&style);
+    
+    main_laps_obj = lv_obj_create(screen);
+    lv_obj_set_content_width(main_laps_obj, 800 - 2*205);
+    lv_obj_set_content_height(main_laps_obj, HEIGHT);
+    lv_obj_set_size(main_laps_obj, 800 - 2*205, HEIGHT);
+    lv_obj_align(main_laps_obj, LV_ALIGN_TOP_MID, 0, 0); 
+    lv_obj_set_style_bg_color (main_laps_obj, lv_main_bg(), LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(main_laps_obj, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_border_width(main_laps_obj, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(main_laps_obj, lv_color_crit(), 0);
+    
+    lv_obj_add_style(main_laps_obj, &style_padding, 0);
+    
+    for (int i = 0; i < 5; i ++) {
+        create_lap_child_element(main_laps_obj, i);
+    }
+}
+
 void create_content(lv_obj_t* screen) {
     create_stint_timer(screen);
     create_lap_timer(screen);
@@ -324,6 +396,8 @@ void create_content(lv_obj_t* screen) {
     create_h2o_status(screen);
     create_oil_status(screen);
     create_gas_status(screen);
+
+    create_main_laps(screen);
 
     create_desc_containers_left(screen);
     create_desc_labels_left(screen);
@@ -341,8 +415,8 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
     lv_style_set_text_font(&style, &lv_font_montserrat_48);
     lv_style_set_shadow_color(&style, lv_color_hex(0xEF7215));
 
-    lv_style_init(&style_spacing);
-    lv_style_set_text_letter_space(&style_spacing, 150);
+    lv_style_init(&style_padding);
+    lv_style_set_pad_all(&style_padding, 0);
 
     create_content(screen);
 }
@@ -379,9 +453,48 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
     lv_label_set_text_fmt(ll_time_diff, "%s%1d.%02d", (diff < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
 }
 
-void lvgl_set_stint_timer(bool running, long target, long elapsed) {
-    //lv_obj_clear_flag(remaining_time, LV_OBJ_FLAG_HIDDEN);
+void lvgl_set_last_laps_main(struct lap_data lap_data) {
+    if(lap_data.current_lap_running) {
+        uint64_t val;
+        gptimer_get_raw_count(lap_data.current_lap, &val);
+        struct time_str time = convert_millis_to_time(val / 1000);
+        lv_label_set_text_fmt(lap_time_labels[0], "%d:%02d.%02d", time.minutes, time.seconds, time.milliseconds / 10);
+        lv_label_set_text(lap_number_labels[0], "Lap");
+    } else {
+        lv_label_set_text(lap_time_labels[0], "OFF");
+        lv_label_set_text(lap_number_labels[0], "");
+    }
+    for (int i = 0; i < 4; i++) {
+        long time_in_ms = lap_data.last_laps[i].lap_time_ms;
+        
+        long diff_in_ms = time_in_ms - lap_data.last_laps[i+1].lap_time_ms;
+        
+        struct time_str time_in_str = convert_millis_to_time(time_in_ms);
+        struct time_str diff_in_str = convert_millis_to_time(diff_in_ms);
+
+        int lapNo = lap_data.lap_no - i;
+        lv_label_set_text_fmt(lap_number_labels[i+1], "%d", lapNo);
+        lv_label_set_text_fmt(lap_time_labels[i+1], "%d:%02d.%02d", time_in_str.minutes, time_in_str.seconds, time_in_str.milliseconds / 10);
+        lv_label_set_text_fmt(
+            lap_diff_labels[i+1], 
+            "%s%d.%02d", 
+            (diff_in_ms > 0 ? "+" : "-"), 
+            diff_in_str.seconds + (60*diff_in_str.minutes), 
+            diff_in_str.milliseconds / 10);
+        lv_obj_set_style_text_color(lap_diff_labels[i+1], (diff_in_ms > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
+    }
+}
+
+
+void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed) {
+    if (!enabled) {
+        draw_as_normal(stint_rem_obj, remaining_time);
+        lv_label_set_text(remaining_time, "OFF");
+        return;
+    }
+
     if (!running) {
+        draw_as_normal(stint_rem_obj, remaining_time);
         lv_label_set_text(remaining_time, "PAUSE");
         return; 
     }
@@ -439,9 +552,13 @@ void lvgl_set_temperatures(struct mcu_data data) {
 }
 
 void lvgl_update_data() {
+    long start = esp_timer_get_time();
     uint64_t elapsed = 0;
     gptimer_get_raw_count(data()->stint.gptimer, &elapsed);
-    lvgl_set_stint_timer(data()->stint.currently_running, data()->stint.target, elapsed/1000);
+    lvgl_set_stint_timer(data()->stint.enabled, data()->stint.running, data()->stint.target, elapsed/1000);
     lvgl_set_last_laps(data()->lap_data);
+    lvgl_set_last_laps_main(data()->lap_data);
     lvgl_set_temperatures(*data());
+    long end = esp_timer_get_time() - start;
+    //ESP_LOGI(TAG_MAIN, "Update took: %ld us", end);
 }

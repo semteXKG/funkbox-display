@@ -5,6 +5,8 @@
 #include "esp_log.h"
 #include "lvgl_ui.h"
 #include "data.h"
+#include "esp_timer.h"
+
 #define UDP_PORT 3333
 
 #define MULTICAST_TTL 1
@@ -17,12 +19,12 @@ char* TAG_BC = "broadcast";
 #define STATUS_MESSAGE_HEADER "STATUS|"
 
 void handle_stint(char* saveptr) {
-    bool enabled = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
+    bool running = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
     long target = atol(strtok_r(NULL, ";", &saveptr));
     long elapsed = atol(strtok_r(NULL, ";", &saveptr));
-    ESP_LOGI(TAG_BC, "Stint: %d - %ld - %ld", enabled, target, elapsed);
     
-    data()->stint.currently_running = enabled;
+    data()->stint.enabled = true;
+    data()->stint.running = running;
     data()->stint.elapsed = elapsed;
     data()->stint.target = target;
 }
@@ -35,9 +37,11 @@ void handle_lapno(char* saveptr) {
 void handle_lap(char* saveptr) {
     long lapno = atol(strtok_r(NULL, ";", &saveptr));
     long laptime = atol(strtok_r(NULL, ";", &saveptr));
+    
     switch (lapno) {
         case 0: 
-            data()->lap_data.current_lap = laptime;
+            data()->lap_data.current_lap_running = true;
+            gptimer_set_raw_count(data()->lap_data.current_lap, laptime * 1000);
         break;
         case -1: 
             data()->lap_data.best_lap = laptime;
@@ -63,8 +67,12 @@ void parse_message(char* message) {
         return;
     }
 
+    long start = esp_timer_get_time();
+
     char *token, *subtoken;
     char *saveptr1, *saveptr2;
+
+    data()->lap_data.current_lap_running = false;
 
     for (token = strtok_r(message, "|", &saveptr1);
          token != NULL;
@@ -91,16 +99,19 @@ void parse_message(char* message) {
     }
 
     gptimer_handle_t gp_timer = data()->stint.gptimer;
-    if(data()->stint.currently_running && !data()->stint.gptimer_running) {
+    if(data()->stint.running && !data()->stint.gptimer_running) {
         gptimer_start(gp_timer);
         data()->stint.gptimer_running = true;
-    } else if (!data()->stint.currently_running && data()->stint.gptimer_running) {
+    } else if (!data()->stint.running && data()->stint.gptimer_running) {
         gptimer_stop(gp_timer);
         data()->stint.gptimer_running = false;
     }
 
     gptimer_set_raw_count(gp_timer, data()->stint.elapsed * 1000);
-    ESP_LOGI(TAG_BC, "finished parsing");
+
+    long end = esp_timer_get_time() - start;
+
+    ESP_LOGI(TAG_BC, "finished parsing in %ld", end);
 }
 
 /* Add a socket to the IPV4 multicast group */
@@ -265,7 +276,7 @@ void listen_broadcast(void *pvParameters)
                     ESP_LOGI(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
 
                     recvbuf[len] = 0; // Null-terminate whatever we received and treat like a string...
-                    ESP_LOGI(TAG_BC,"%s\n", recvbuf);
+                    //ESP_LOGI(TAG_BC,"%s", recvbuf);
 
                     parse_message(recvbuf);
                 }
