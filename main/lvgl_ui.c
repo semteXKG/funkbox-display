@@ -438,7 +438,14 @@ void draw_as_critical(lv_obj_t* box, lv_obj_t* text) {
     lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
 }
 
+long last_lap_checksum = 0L;
 void lvgl_set_last_laps(struct lap_data lap_data) {
+    long checksum = lap_data.best_lap + lap_data.last_laps[0].lap_time_ms;
+    if(checksum == last_lap_checksum) {
+        return;
+    }
+    last_lap_checksum = checksum;
+
     struct time_str pb = convert_millis_to_time(lap_data.best_lap);
     lv_label_set_text_fmt(pb_time, "%1d:%02d.%02d", pb.minutes, pb.seconds, pb.milliseconds/10);
     
@@ -453,26 +460,38 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
     lv_label_set_text_fmt(ll_time_diff, "%s%1d.%02d", (diff < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
 }
 
-void lvgl_set_last_laps_main(struct lap_data lap_data) {
+bool previously_running = false;
+long checksums[4] = {0};
+void lvgl_set_last_laps_main(struct lap_data lap_data) {    
     if(lap_data.current_lap_running) {
         uint64_t val;
         gptimer_get_raw_count(lap_data.current_lap, &val);
         struct time_str time = convert_millis_to_time(val / 1000);
         lv_label_set_text_fmt(lap_time_labels[0], "%d:%02d.%02d", time.minutes, time.seconds, time.milliseconds / 10);
-        lv_label_set_text(lap_number_labels[0], "Lap");
-    } else {
+        
+        if(previously_running != lap_data.current_lap_running) {
+            lv_label_set_text(lap_number_labels[0], "Lap");
+        }
+    } else if (previously_running) {
         lv_label_set_text(lap_time_labels[0], "OFF");
         lv_label_set_text(lap_number_labels[0], "");
     }
+    previously_running = lap_data.current_lap_running;
+
     for (int i = 0; i < 4; i++) {
         long time_in_ms = lap_data.last_laps[i].lap_time_ms;
-        
         long diff_in_ms = time_in_ms - lap_data.last_laps[i+1].lap_time_ms;
+        int lapNo = lap_data.lap_no - i;
         
+        long checksum = time_in_ms + diff_in_ms + lapNo;
+        if(checksum == checksums[i]) {
+            continue;
+        }
+        checksums[i] = checksum;
+
         struct time_str time_in_str = convert_millis_to_time(time_in_ms);
         struct time_str diff_in_str = convert_millis_to_time(diff_in_ms);
-
-        int lapNo = lap_data.lap_no - i;
+        
         lv_label_set_text_fmt(lap_number_labels[i+1], "%d", lapNo);
         lv_label_set_text_fmt(lap_time_labels[i+1], "%d:%02d.%02d", time_in_str.minutes, time_in_str.seconds, time_in_str.milliseconds / 10);
         lv_label_set_text_fmt(
@@ -485,8 +504,14 @@ void lvgl_set_last_laps_main(struct lap_data lap_data) {
     }
 }
 
-
+long stint_timer_checksum = 0L;
 void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed) {
+    long checksum = enabled + running + target + elapsed;
+    if (checksum == stint_timer_checksum) {
+        return;
+    }
+    stint_timer_checksum = checksum;
+
     if (!enabled) {
         draw_as_normal(stint_rem_obj, remaining_time);
         lv_label_set_text(remaining_time, "OFF");
@@ -524,37 +549,55 @@ void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed)
     lv_label_set_text_fmt(remaining_time, "%s%02d:%02d", is_neg ? "-": "", time.minutes, time.seconds);
 }
 
+double prev_oil_checksum = 0.0;
+double prev_water_checksum = 0.0;
+double prev_gas_checksum = 0.0;
 void lvgl_set_temperatures(struct mcu_data data) {
     char temp[10];
-    lv_label_set_text_fmt(oil_temp_message, "%d", data.oil.temp);
-    sprintf(temp, "%0.1f", data.oil.preassure);
-    lv_label_set_text(oil_pres_message, temp);
-
-    lv_label_set_text_fmt(h2o_temp_message, "%d", data.water.temp);
+    double checksum = data.oil.temp + data.oil.preassure;
+    if(checksum != prev_oil_checksum) {
+        prev_oil_checksum = checksum;
+        lv_label_set_text_fmt(oil_temp_message, "%d", data.oil.temp);
+        sprintf(temp, "%0.1f", data.oil.preassure);
+        lv_label_set_text(oil_pres_message, temp);    
+     
+        if(get_oil_warn()->preassure > data.oil.preassure || get_oil_warn()->temp < data.oil.temp) {
+            draw_as_critical(oil_obj, oil_temp_message);
+            draw_as_critical(oil_obj, oil_pres_message);
+        } else {
+            draw_as_normal(oil_obj, oil_temp_message);
+            draw_as_normal(oil_obj, oil_pres_message);
+        }
     
-    sprintf(temp, "%0.1f", data.gas.preassure);
-    lv_label_set_text(gas_pres_message, temp);    
-
-    if(get_oil_warn()->preassure > data.oil.preassure || get_oil_warn()->temp < data.oil.temp) {
-        draw_as_critical(oil_obj, oil_temp_message);
-        draw_as_critical(oil_obj, oil_pres_message);
-    } else {
-        draw_as_normal(oil_obj, oil_temp_message);
-        draw_as_normal(oil_obj, oil_pres_message);
+    }
+    
+    if(prev_water_checksum != data.water.temp) {
+        prev_water_checksum = data.water.temp;
+        lv_label_set_text_fmt(h2o_temp_message, "%d", data.water.temp);
+        if (get_water_warn()->temp <  data.water.temp) {
+            draw_as_critical(h2o_obj, h2o_temp_message);
+        } else {
+            draw_as_normal(h2o_obj, h2o_temp_message);
+        }
+    }
+    
+    if(prev_gas_checksum != data.gas.preassure) {
+        prev_gas_checksum = data.gas.preassure;
+        sprintf(temp, "%0.1f", data.gas.preassure);
+        lv_label_set_text(gas_pres_message, temp);    
     }
 
-    if (get_water_warn()->temp <  data.water.temp) {
-        draw_as_critical(h2o_obj, h2o_temp_message);
 
-    } else {
-        draw_as_normal(h2o_obj, h2o_temp_message);
-    }
+
+
+
 }
 
 void lvgl_update_data() {
     long start = esp_timer_get_time();
     uint64_t elapsed = 0;
     struct mcu_data* data = get_data();
+
     gptimer_get_raw_count(data->stint.gptimer, &elapsed);
     lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, elapsed/1000);
     lvgl_set_last_laps(data->lap_data);

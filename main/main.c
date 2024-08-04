@@ -83,6 +83,11 @@ static const char *TAG = "example";
 #define EXAMPLE_LVGL_TASK_STACK_SIZE   (4 * 1024)
 #define EXAMPLE_LVGL_TASK_PRIORITY     2
 
+#if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
+SemaphoreHandle_t sem_vsync_end;
+SemaphoreHandle_t sem_gui_ready;
+#endif
+
 static SemaphoreHandle_t lvgl_mux = NULL;
 
 static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
@@ -204,6 +209,14 @@ void app_main(void)
     static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     static lv_disp_drv_t disp_drv;      // contains callback functions
 
+    #if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
+        ESP_LOGI(TAG, "Create semaphores");
+        sem_vsync_end = xSemaphoreCreateBinary();
+        assert(sem_vsync_end);
+        sem_gui_ready = xSemaphoreCreateBinary();
+        assert(sem_gui_ready);
+    #endif
+
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
@@ -311,10 +324,18 @@ void app_main(void)
     lv_init();
     void *buf1 = NULL;
     void *buf2 = NULL;
-    ESP_LOGI(TAG, "Use frame buffers as LVGL draw buffers");
-    ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 2, &buf1, &buf2));
-    // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
+    #if CONFIG_EXAMPLE_DOUBLE_FB
+        ESP_LOGI(TAG, "Use frame buffers as LVGL draw buffers");
+        ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 2, &buf1, &buf2));
+        // initialize LVGL draw buffers
+        lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
+    #else
+        ESP_LOGI(TAG, "Allocate separate LVGL draw buffers from PSRAM");
+        buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+        assert(buf1);
+        // initialize LVGL draw buffers
+        lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * 100);
+    #endif // CONFIG_EXAMPLE_DOUBLE_FB
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
@@ -323,7 +344,9 @@ void app_main(void)
     disp_drv.flush_cb = example_lvgl_flush_cb;
     disp_drv.draw_buf = &disp_buf;
     disp_drv.user_data = panel_handle;
-    disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
+    #if CONFIG_EXAMPLE_DOUBLE_FB
+        disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
+    #endif
 
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
 
