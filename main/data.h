@@ -52,9 +52,9 @@ struct time_str {
     int minutes;
 };
 
-struct mcu_data* data();
-struct car_sensor* oil_warn();
-struct car_sensor* water_warn();
+struct mcu_data* get_data();
+struct car_sensor* get_oil_warn();
+struct car_sensor* get_water_warn();
 
 void data_start();
 

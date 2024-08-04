@@ -18,39 +18,38 @@ char* TAG_BC = "broadcast";
 
 #define STATUS_MESSAGE_HEADER "STATUS|"
 
-void handle_stint(char* saveptr) {
+void handle_stint(struct mcu_data* data, char* saveptr) {
     bool running = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
     long target = atol(strtok_r(NULL, ";", &saveptr));
     long elapsed = atol(strtok_r(NULL, ";", &saveptr));
     
-    data()->stint.enabled = true;
-    data()->stint.running = running;
-    data()->stint.elapsed = elapsed;
-    data()->stint.target = target;
+    data->stint.enabled = true;
+    data->stint.running = running;
+    data->stint.elapsed = elapsed;
+    data->stint.target = target;
 }
 
-void handle_lapno(char* saveptr) {
+void handle_lapno(struct mcu_data* data, char* saveptr) {
     int lap_no = atoi(strtok_r(NULL, ";", &saveptr));
-    data()->lap_data.lap_no = lap_no;
+    data->lap_data.lap_no = lap_no;
 }
 
-void handle_lap(char* saveptr) {
+void handle_lap(struct mcu_data* data, char* saveptr) {
     long lapno = atol(strtok_r(NULL, ";", &saveptr));
     long laptime = atol(strtok_r(NULL, ";", &saveptr));
     
     switch (lapno) {
         case 0: 
-            data()->lap_data.current_lap_running = true;
-            gptimer_set_raw_count(data()->lap_data.current_lap, laptime * 1000);
+            data->lap_data.current_lap_running = true;
+            gptimer_set_raw_count(data->lap_data.current_lap, laptime * 1000);
         break;
         case -1: 
-            data()->lap_data.best_lap = laptime;
+            data->lap_data.best_lap = laptime;
         break;
         default: 
-            data()->lap_data.last_laps[lapno-1].lap_no = lapno;
-            data()->lap_data.last_laps[lapno-1].lap_time_ms = laptime;
+            data->lap_data.last_laps[lapno-1].lap_no = lapno;
+            data->lap_data.last_laps[lapno-1].lap_time_ms = laptime;
         break;
-
     }
 }
 
@@ -69,10 +68,12 @@ void parse_message(char* message) {
 
     long start = esp_timer_get_time();
 
+    struct mcu_data* data = get_data();
+
     char *token, *subtoken;
     char *saveptr1, *saveptr2;
 
-    data()->lap_data.current_lap_running = false;
+    data->lap_data.current_lap_running = false;
 
     for (token = strtok_r(message, "|", &saveptr1);
          token != NULL;
@@ -80,34 +81,34 @@ void parse_message(char* message) {
                 
         subtoken = strtok_r(token, ";", &saveptr2);
         if(strcmp(subtoken, "STNT") == 0) {
-            handle_stint(saveptr2);
+            handle_stint(data, saveptr2);
         } else if (strcmp(subtoken, "LAP") == 0) {
-            handle_lap(saveptr2);
+            handle_lap(data, saveptr2);
         } else if (strcmp(subtoken, "LAP-NO") == 0) {
-            handle_lapno(saveptr2); 
+            handle_lapno(data, saveptr2); 
         } else if (strcmp(subtoken, "WATER") == 0) {
-            handle_temp_pres(saveptr2, &data()->water);
+            handle_temp_pres(saveptr2, &data->water);
         } else if (strcmp(subtoken, "OIL") == 0) {
-            handle_temp_pres(saveptr2,  &data()->oil);
+            handle_temp_pres(saveptr2,  &data->oil);
         } else if (strcmp(subtoken, "GAS") == 0) {
-            handle_temp_pres(saveptr2, &data()->gas);
+            handle_temp_pres(saveptr2, &data->gas);
         }else if (strcmp(subtoken, "OIL_WARN") == 0) {
-            handle_temp_pres(saveptr2, oil_warn());
+            handle_temp_pres(saveptr2, get_oil_warn());
         }else if (strcmp(subtoken, "WATER_WARN") == 0) {
-            handle_temp_pres(saveptr2, water_warn());
+            handle_temp_pres(saveptr2, get_water_warn());
         }
     }
 
-    gptimer_handle_t gp_timer = data()->stint.gptimer;
-    if(data()->stint.running && !data()->stint.gptimer_running) {
+    gptimer_handle_t gp_timer = data->stint.gptimer;
+    if(data->stint.running && !data->stint.gptimer_running) {
         gptimer_start(gp_timer);
-        data()->stint.gptimer_running = true;
-    } else if (!data()->stint.running && data()->stint.gptimer_running) {
+        data->stint.gptimer_running = true;
+    } else if (!data->stint.running && data->stint.gptimer_running) {
         gptimer_stop(gp_timer);
-        data()->stint.gptimer_running = false;
+        data->stint.gptimer_running = false;
     }
 
-    gptimer_set_raw_count(gp_timer, data()->stint.elapsed * 1000);
+    gptimer_set_raw_count(gp_timer, data->stint.elapsed * 1000);
 
     long end = esp_timer_get_time() - start;
 

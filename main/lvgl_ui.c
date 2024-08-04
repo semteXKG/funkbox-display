@@ -535,7 +535,7 @@ void lvgl_set_temperatures(struct mcu_data data) {
     sprintf(temp, "%0.1f", data.gas.preassure);
     lv_label_set_text(gas_pres_message, temp);    
 
-    if(oil_warn()->preassure > data.oil.preassure || oil_warn()->temp < data.oil.temp) {
+    if(get_oil_warn()->preassure > data.oil.preassure || get_oil_warn()->temp < data.oil.temp) {
         draw_as_critical(oil_obj, oil_temp_message);
         draw_as_critical(oil_obj, oil_pres_message);
     } else {
@@ -543,7 +543,7 @@ void lvgl_set_temperatures(struct mcu_data data) {
         draw_as_normal(oil_obj, oil_pres_message);
     }
 
-    if (water_warn()->temp <  data.water.temp) {
+    if (get_water_warn()->temp <  data.water.temp) {
         draw_as_critical(h2o_obj, h2o_temp_message);
 
     } else {
@@ -554,11 +554,12 @@ void lvgl_set_temperatures(struct mcu_data data) {
 void lvgl_update_data() {
     long start = esp_timer_get_time();
     uint64_t elapsed = 0;
-    gptimer_get_raw_count(data()->stint.gptimer, &elapsed);
-    lvgl_set_stint_timer(data()->stint.enabled, data()->stint.running, data()->stint.target, elapsed/1000);
-    lvgl_set_last_laps(data()->lap_data);
-    lvgl_set_last_laps_main(data()->lap_data);
-    lvgl_set_temperatures(*data());
+    struct mcu_data* data = get_data();
+    gptimer_get_raw_count(data->stint.gptimer, &elapsed);
+    lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, elapsed/1000);
+    lvgl_set_last_laps(data->lap_data);
+    lvgl_set_last_laps_main(data->lap_data);
+    lvgl_set_temperatures(*data);
     long end = esp_timer_get_time() - start;
     //ESP_LOGI(TAG_MAIN, "Update took: %ld us", end);
 }

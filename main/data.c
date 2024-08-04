@@ -1,23 +1,31 @@
 #include <data.h>
 #include <driver/gptimer.h>
 #include <esp_timer.h>
+#include <memory.h>
 
-struct mcu_data backing_data;
-struct car_sensor backing_oil_warn;
-struct car_sensor backing_water_warn;
+struct mcu_data* backing_data;
+struct car_sensor* backing_oil_warn;
+struct car_sensor* backing_water_warn;
 
-struct mcu_data* data() {
-    return &backing_data;
+struct mcu_data* get_data() {
+    return backing_data;
 }
-struct car_sensor* oil_warn() {
-    return &backing_oil_warn;
+struct car_sensor* get_oil_warn() {
+    return backing_oil_warn;
 }
-struct car_sensor* water_warn() {
-    return &backing_water_warn;
+struct car_sensor* get_water_warn() {
+    return backing_water_warn;
 }
 
 
 void data_start() {
+    backing_data = (struct mcu_data*) malloc(sizeof(struct mcu_data));
+    memset(backing_data, 0, sizeof(struct mcu_data));
+    backing_oil_warn = (struct car_sensor*) malloc(sizeof(struct car_sensor));
+    memset(backing_oil_warn, 0, sizeof(struct car_sensor));
+    backing_water_warn = (struct car_sensor*) malloc(sizeof(struct car_sensor));
+    memset(backing_water_warn, 0, sizeof(struct car_sensor));
+
     gptimer_handle_t gptimer = NULL;
     gptimer_config_t timer_config = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT,
@@ -26,16 +34,16 @@ void data_start() {
     };
     gptimer_new_timer(&timer_config, &gptimer);
     gptimer_enable(gptimer);
-    backing_data.stint.gptimer = gptimer;
-    backing_data.stint.gptimer_running = false;
+    backing_data->stint.gptimer = gptimer;
+    backing_data->stint.gptimer_running = false;
 
     gptimer_handle_t lap_running_timer = NULL;
     gptimer_new_timer(&timer_config, &lap_running_timer);
     gptimer_enable(lap_running_timer);
     gptimer_start(lap_running_timer);
 
-    backing_data.lap_data.current_lap = lap_running_timer;
-    backing_data.lap_data.current_lap_running = false;
+    backing_data->lap_data.current_lap = lap_running_timer;
+    backing_data->lap_data.current_lap_running = false;
 
 }
 
