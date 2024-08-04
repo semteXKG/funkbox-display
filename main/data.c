@@ -1,7 +1,8 @@
 #include <data.h>
-#include <driver/gptimer.h>
 #include <esp_timer.h>
 #include <memory.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/timers.h>
 
 struct mcu_data* backing_data;
 struct car_sensor* backing_oil_warn;
@@ -17,6 +18,16 @@ struct car_sensor* get_water_warn() {
     return backing_water_warn;
 }
 
+void update_timestamps(TimerHandle_t xTimer ) {
+    struct mcu_data* data = get_data();
+    if (data->lap_data.current_lap != -1) {
+        data->lap_data.current_lap += 3;
+    }
+
+    if (data->stint.enabled) {
+        data->stint.elapsed += 3;
+    }
+}
 
 void data_start() {
     backing_data = (struct mcu_data*) malloc(sizeof(struct mcu_data));
@@ -25,26 +36,12 @@ void data_start() {
     memset(backing_oil_warn, 0, sizeof(struct car_sensor));
     backing_water_warn = (struct car_sensor*) malloc(sizeof(struct car_sensor));
     memset(backing_water_warn, 0, sizeof(struct car_sensor));
-
-    gptimer_handle_t gptimer = NULL;
-    gptimer_config_t timer_config = {
-        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
-        .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 1 * 1000 * 1000, // 1KHz, 1 tick = 1ms
-    };
-    gptimer_new_timer(&timer_config, &gptimer);
-    gptimer_enable(gptimer);
-    backing_data->stint.gptimer = gptimer;
-    backing_data->stint.gptimer_running = false;
-
-    gptimer_handle_t lap_running_timer = NULL;
-    gptimer_new_timer(&timer_config, &lap_running_timer);
-    gptimer_enable(lap_running_timer);
-    gptimer_start(lap_running_timer);
-
-    backing_data->lap_data.current_lap = lap_running_timer;
-    backing_data->lap_data.current_lap_running = false;
-
+    TimerHandle_t timer = xTimerCreate("millisecondAdvancer",
+                    pdMS_TO_TICKS(3),
+                    pdTRUE,
+                    0,
+                    update_timestamps);
+    xTimerStart(timer, 0);
 }
 
 struct time_str convert_millis_to_time(long millis) {

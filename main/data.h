@@ -1,6 +1,5 @@
 #pragma once
 #include "stdbool.h"
-#include "driver/gptimer.h"
 
 enum warn_status {
     OK,
@@ -19,8 +18,6 @@ struct stint_data {
     bool enabled;
     long target;
     long elapsed;
-    gptimer_handle_t gptimer;
-    bool gptimer_running;
 };
 
 struct lap
@@ -33,8 +30,7 @@ struct lap
 struct lap_data {
     int lap_no;
     long best_lap;
-    bool current_lap_running;
-    gptimer_handle_t current_lap;
+    long current_lap;
     struct lap last_laps[5];
 };
 

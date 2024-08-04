@@ -39,8 +39,7 @@ void handle_lap(struct mcu_data* data, char* saveptr) {
     
     switch (lapno) {
         case 0: 
-            data->lap_data.current_lap_running = true;
-            gptimer_set_raw_count(data->lap_data.current_lap, laptime * 1000);
+            data->lap_data.current_lap = laptime;
         break;
         case -1: 
             data->lap_data.best_lap = laptime;
@@ -72,7 +71,7 @@ void parse_message(char* message) {
     char *token, *subtoken;
     char *saveptr1, *saveptr2;
 
-    data->lap_data.current_lap_running = false;
+    data->lap_data.current_lap = -1;
 
     for (token = strtok_r(message, "|", &saveptr1);
          token != NULL;
@@ -97,17 +96,6 @@ void parse_message(char* message) {
             handle_temp_pres(saveptr2, get_water_warn());
         }
     }
-
-    gptimer_handle_t gp_timer = data->stint.gptimer;
-    if(data->stint.running && !data->stint.gptimer_running) {
-        gptimer_start(gp_timer);
-        data->stint.gptimer_running = true;
-    } else if (!data->stint.running && data->stint.gptimer_running) {
-        gptimer_stop(gp_timer);
-        data->stint.gptimer_running = false;
-    }
-
-    gptimer_set_raw_count(gp_timer, data->stint.elapsed * 1000);
 
     long end = esp_timer_get_time() - start;
 

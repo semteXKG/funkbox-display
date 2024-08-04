@@ -469,20 +469,18 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
 bool previously_running = false;
 long checksums[4] = {0};
 void lvgl_set_last_laps_main(struct lap_data lap_data) {    
-    if(lap_data.current_lap_running) {
-        uint64_t val;
-        gptimer_get_raw_count(lap_data.current_lap, &val);
-        struct time_str time = convert_millis_to_time(val / 1000);
+    if(lap_data.current_lap != -1) {
+        struct time_str time = convert_millis_to_time(lap_data.current_lap);
         lv_label_set_text_fmt(lap_time_labels[0], "%d:%02d.%02d", time.minutes, time.seconds, time.milliseconds / 10);
         
-        if(previously_running != lap_data.current_lap_running) {
+        if(previously_running != (lap_data.current_lap != -1)) {
             lv_label_set_text(lap_number_labels[0], "Lap");
         }
     } else if (previously_running) {
         lv_label_set_text(lap_time_labels[0], "OFF");
         lv_label_set_text(lap_number_labels[0], "");
     }
-    previously_running = lap_data.current_lap_running;
+    previously_running = lap_data.current_lap != -1;
 
     for (int i = 0; i < 4; i++) {
         long time_in_ms = lap_data.last_laps[i].lap_time_ms;
@@ -592,21 +590,14 @@ void lvgl_set_temperatures(struct mcu_data data) {
         sprintf(temp, "%0.1f", data.gas.preassure);
         lv_label_set_text(gas_pres_message, temp);    
     }
-
-
-
-
-
 }
 
 void lvgl_update_data() {
     long start = esp_timer_get_time();
-    uint64_t elapsed = 0;
+
     struct mcu_data* data = get_data();
 
-    gptimer_get_raw_count(data->stint.gptimer, &elapsed);
-    ESP_LOGI(TAG_MAIN, "target: %ld vs timer %"PRId64, data->stint.elapsed, elapsed);
-    lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, elapsed/1000);
+    lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, data->stint.elapsed);
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);
     lvgl_set_temperatures(*data);
