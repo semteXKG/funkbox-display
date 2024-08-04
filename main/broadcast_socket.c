@@ -22,7 +22,6 @@ void handle_stint(struct mcu_data* data, char* saveptr) {
     bool running = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
     long target = atol(strtok_r(NULL, ";", &saveptr));
     long elapsed = atol(strtok_r(NULL, ";", &saveptr));
-    
     data->stint.enabled = true;
     data->stint.running = running;
     data->stint.elapsed = elapsed;
@@ -277,7 +276,7 @@ void listen_broadcast(void *pvParameters)
                     ESP_LOGI(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
 
                     recvbuf[len] = 0; // Null-terminate whatever we received and treat like a string...
-                    //ESP_LOGI(TAG_BC,"%s", recvbuf);
+                    ESP_LOGI(TAG_BC,"%s", recvbuf);
 
                     parse_message(recvbuf);
                 }

@@ -50,6 +50,12 @@ lv_obj_t* lap_number_labels[5];
 lv_obj_t* lap_time_labels[5];
 lv_obj_t* lap_diff_labels[5];
 
+LV_FONT_DECLARE(lv_immono_20);
+LV_FONT_DECLARE(lv_immono_28);
+LV_FONT_DECLARE(lv_immono_38);
+LV_FONT_DECLARE(lv_immono_40);
+LV_FONT_DECLARE(lv_immono_48);
+
 lv_color_t lv_color_ok() {
     return lv_color_hex(0x00FF00);
 }
@@ -105,19 +111,19 @@ void create_lap_timer(lv_obj_t* screen) {
     apply_styling(lap_timer_obj, LV_BORDER_SIDE_RIGHT);
 
     pb_time = lv_label_create(lap_timer_obj);
-    lv_obj_set_style_text_font(pb_time, &lv_font_montserrat_40, 0);
+    lv_obj_set_style_text_font(pb_time, &lv_immono_40, 0);
     lv_label_set_text(pb_time, "1:16.10");
     lv_obj_set_style_text_color(pb_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(pb_time, LV_ALIGN_TOP_MID, 0, 0);
 
     ll_time = lv_label_create(lap_timer_obj);
-    lv_obj_set_style_text_font(ll_time, &lv_font_montserrat_40, 0);
+    lv_obj_set_style_text_font(ll_time, &lv_immono_40, 0);
     lv_label_set_text(ll_time, "1:17.66");
     lv_obj_set_style_text_color(ll_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(ll_time, LV_ALIGN_CENTER, 0, 0);
 
     ll_time_diff = lv_label_create(lap_timer_obj);
-    lv_obj_set_style_text_font(ll_time_diff, &lv_font_montserrat_40, 0);
+    lv_obj_set_style_text_font(ll_time_diff, &lv_immono_40, 0);
     lv_label_set_text(ll_time_diff, "-0.06");
     lv_obj_set_style_text_color(ll_time_diff, lv_color_ok(), LV_PART_MAIN);
     lv_obj_set_style_text_align(ll_time_diff, LV_TEXT_ALIGN_CENTER, 0);
@@ -156,7 +162,7 @@ void create_desc_labels_right(lv_obj_t* screen) {
     lv_obj_add_style(oil_desc_lbl, &style, 0);
     lv_label_set_text(oil_desc_lbl, "O\nI\nL");
     lv_obj_set_style_text_color(oil_desc_lbl, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(oil_desc_lbl, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(oil_desc_lbl, &lv_immono_20, 0);
     lv_obj_set_style_text_align(oil_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(oil_desc_lbl, LV_ALIGN_CENTER, -2, 0);
 
@@ -165,7 +171,7 @@ void create_desc_labels_right(lv_obj_t* screen) {
     lv_obj_add_style(h2o_desc_lbl, &style, 0);
     lv_label_set_text(h2o_desc_lbl, "H\n2\nO");
     lv_obj_set_style_text_color(h2o_desc_lbl, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(h2o_desc_lbl, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(h2o_desc_lbl, &lv_immono_20, 0);
     lv_obj_set_style_text_align(h2o_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(h2o_desc_lbl, LV_ALIGN_CENTER, -2, 0);
 
@@ -173,7 +179,7 @@ void create_desc_labels_right(lv_obj_t* screen) {
     lv_obj_add_style(gas_desc_lbl, &style, 0);
     lv_label_set_text(gas_desc_lbl, "G\nA\nS");
     lv_obj_set_style_text_color(gas_desc_lbl, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(gas_desc_lbl, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(gas_desc_lbl, &lv_immono_20, 0);
     lv_obj_set_style_text_align(gas_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(gas_desc_lbl, LV_ALIGN_CENTER, -2, 0);
 }
@@ -207,7 +213,7 @@ void create_desc_labels_left(lv_obj_t* screen) {
     lv_obj_add_style(pb_desc, &style, 0);
     lv_label_set_text(pb_desc, "P\nB");
     lv_obj_set_style_text_color(pb_desc, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(pb_desc, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(pb_desc, &lv_immono_20, 0);
     lv_obj_set_style_text_align(pb_desc, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(pb_desc, LV_ALIGN_TOP_MID, 2, 0);
 
@@ -216,7 +222,7 @@ void create_desc_labels_left(lv_obj_t* screen) {
     lv_obj_add_style(ll_desc, &style, 0);
     lv_label_set_text(ll_desc, "L\nA\nS\nT");
     lv_obj_set_style_text_color(ll_desc, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(ll_desc, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(ll_desc, &lv_immono_20, 0);
     lv_obj_set_style_text_align(ll_desc, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(ll_desc, LV_ALIGN_CENTER, 2, 25);
 
@@ -225,7 +231,7 @@ void create_desc_labels_left(lv_obj_t* screen) {
     lv_obj_add_style(box_descr, &style, 0);
     lv_label_set_text(box_descr, "S\nT\nI\nN\nT");
     lv_obj_set_style_text_color(box_descr, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(box_descr, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(box_descr, &lv_immono_20, 0);
     lv_obj_set_style_text_align(box_descr, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(box_descr, LV_ALIGN_CENTER, 2, 0);
 
@@ -233,7 +239,7 @@ void create_desc_labels_left(lv_obj_t* screen) {
     lv_obj_add_style(radio_desc, &style, 0);
     lv_label_set_text(radio_desc, "C\nO\nM\nM\nS");
     lv_obj_set_style_text_color(radio_desc, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(radio_desc, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(radio_desc, &lv_immono_20, 0);
     lv_obj_set_style_text_align(radio_desc, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(radio_desc, LV_ALIGN_CENTER, 2, 0);
 }
@@ -245,13 +251,13 @@ void create_radio_timer(lv_obj_t* screen) {
     apply_styling(radio_obj, LV_BORDER_SIDE_RIGHT);
 
     radio_last_message = lv_label_create(radio_obj);
-    lv_obj_set_style_text_font(radio_last_message, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(radio_last_message, &lv_immono_48, 0);
     lv_label_set_text(radio_last_message, "PIT");
     lv_obj_set_style_text_color(radio_last_message, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(radio_last_message, LV_ALIGN_CENTER, 0, 0);
 
     radio_last_message_time_ago = lv_label_create(radio_obj);
-    lv_obj_set_style_text_font(radio_last_message_time_ago, &lv_font_montserrat_28, 0);
+    lv_obj_set_style_text_font(radio_last_message_time_ago, &lv_immono_28, 0);
     lv_label_set_text(radio_last_message_time_ago, "4m ago");
     lv_obj_set_style_text_color(radio_last_message_time_ago, lv_color_white(), LV_PART_MAIN);
     lv_obj_align_to(radio_last_message_time_ago, radio_last_message, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
@@ -265,13 +271,13 @@ void create_h2o_status(lv_obj_t* screen) {
     apply_styling(h2o_obj, LV_BORDER_SIDE_LEFT);
 
     h2o_temp_message = lv_label_create(h2o_obj);
-    lv_obj_set_style_text_font(h2o_temp_message, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(h2o_temp_message, &lv_immono_48, 0);
     lv_label_set_text(h2o_temp_message, "90");
     lv_obj_set_style_text_color(h2o_temp_message, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(h2o_temp_message, LV_ALIGN_LEFT_MID, 0, 0);
 
     lv_obj_t* h2o_temp_currency = lv_label_create(h2o_obj);
-    lv_obj_set_style_text_font(h2o_temp_currency, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(h2o_temp_currency, &lv_immono_20, 0);
     lv_label_set_text(h2o_temp_currency, "°C");
     lv_obj_set_style_text_color(h2o_temp_currency, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(h2o_temp_currency, LV_ALIGN_RIGHT_MID, 0, 0);
@@ -285,26 +291,26 @@ void create_oil_status(lv_obj_t* screen) {
     apply_styling(oil_obj, LV_BORDER_SIDE_LEFT);
 
     oil_temp_message = lv_label_create(oil_obj);
-    lv_obj_set_style_text_font(oil_temp_message, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(oil_temp_message, &lv_immono_48, 0);
     lv_label_set_text(oil_temp_message, "130");
     lv_obj_set_style_text_color(oil_temp_message, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(oil_temp_message, LV_ALIGN_TOP_LEFT, 0, 0);
 
     lv_obj_t* oil_temp_currency = lv_label_create(oil_obj);
-    lv_obj_set_style_text_font(oil_temp_currency, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(oil_temp_currency, &lv_immono_20, 0);
     lv_label_set_text(oil_temp_currency, "°C");
     lv_obj_set_style_text_color(oil_temp_currency, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(oil_temp_currency, LV_ALIGN_TOP_RIGHT, 0, 8);
 
     oil_pres_message = lv_label_create(oil_obj);
-    lv_obj_set_style_text_font(oil_pres_message, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(oil_pres_message, &lv_immono_48, 0);
     lv_label_set_text(oil_pres_message, "6.4");
     lv_obj_set_style_text_color(oil_pres_message, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(oil_pres_message, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 
 
     lv_obj_t* oil_pres_curency = lv_label_create(oil_obj);
-    lv_obj_set_style_text_font(oil_pres_curency, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(oil_pres_curency, &lv_immono_20, 0);
     lv_label_set_text(oil_pres_curency, "bar");
     lv_obj_set_style_text_color(oil_pres_curency, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(oil_pres_curency, LV_ALIGN_BOTTOM_RIGHT, 0, -8);
@@ -318,13 +324,13 @@ void create_gas_status(lv_obj_t* screen) {
 
 
     gas_pres_message = lv_label_create(gas_obj);
-    lv_obj_set_style_text_font(gas_pres_message, &lv_font_montserrat_48, 0);
+    lv_obj_set_style_text_font(gas_pres_message, &lv_immono_48, 0);
     lv_label_set_text(gas_pres_message, "2.3");
     lv_obj_set_style_text_color(gas_pres_message, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(gas_pres_message, LV_ALIGN_LEFT_MID, 0, 0);
 
     lv_obj_t* gas_pres_currency = lv_label_create(gas_obj);
-    lv_obj_set_style_text_font(gas_pres_currency, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(gas_pres_currency, &lv_immono_20, 0);
     lv_label_set_text(gas_pres_currency, "bar");
     lv_obj_set_style_text_color(gas_pres_currency, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(gas_pres_currency, LV_ALIGN_RIGHT_MID, 0, 0);
@@ -344,7 +350,7 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lv_label_set_text_fmt(lap_time, "1:02.03");
     lv_obj_set_style_text_color(lap_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_time, LV_ALIGN_CENTER);
-    lv_obj_set_style_text_font(lap_time, &lv_font_montserrat_38, LV_PART_MAIN);
+    lv_obj_set_style_text_font(lap_time, &lv_immono_38, LV_PART_MAIN);
 
     lap_time_labels[i] = lap_time;
     
@@ -352,7 +358,7 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lv_label_set_text_fmt(lap_no, "%d", i);
     lv_obj_set_style_text_color(lap_no, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_no, LV_ALIGN_LEFT_MID);
-    lv_obj_set_style_text_font(lap_no, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(lap_no, &lv_immono_28, LV_PART_MAIN);
     lap_number_labels[i] = lap_no;
     // no lap + diff as first is LIVE
     if (i == 0) {
@@ -363,7 +369,7 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lv_label_set_text_fmt(lap_diff, "%d", i);
     lv_obj_set_style_text_color(lap_diff, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_diff, LV_ALIGN_RIGHT_MID);
-    lv_obj_set_style_text_font(lap_diff, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(lap_diff, &lv_immono_28, LV_PART_MAIN);
     lap_diff_labels[i] = lap_diff;
 }
 
@@ -412,7 +418,7 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
     lv_obj_set_style_bg_color(screen, lv_main_bg(),LV_PART_MAIN);
 
     lv_style_init(&style);
-    lv_style_set_text_font(&style, &lv_font_montserrat_48);
+    lv_style_set_text_font(&style, &lv_immono_48);
     lv_style_set_shadow_color(&style, lv_color_hex(0xEF7215));
 
     lv_style_init(&style_padding);
@@ -599,6 +605,7 @@ void lvgl_update_data() {
     struct mcu_data* data = get_data();
 
     gptimer_get_raw_count(data->stint.gptimer, &elapsed);
+    ESP_LOGI(TAG_MAIN, "target: %ld vs timer %"PRId64, data->stint.elapsed, elapsed);
     lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, elapsed/1000);
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);

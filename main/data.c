@@ -52,6 +52,7 @@ struct time_str convert_millis_to_time(long millis) {
         millis *= -1;
     }
     int minutes = millis / (60 * 1000);
+    
     int rem = millis - (minutes * 60 * 1000);
     int seconds = rem / 1000;
     int msecs = rem - seconds * 1000;
