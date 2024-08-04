@@ -508,7 +508,7 @@ void lvgl_set_last_laps_main(struct lap_data lap_data) {
     }
 }
 
-long stint_timer_checksum = 0L;
+long stint_timer_checksum = -1L;
 void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed) {
     long checksum = enabled + running + target + elapsed;
     if (checksum == stint_timer_checksum) {
@@ -531,6 +531,7 @@ void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed)
     long time_rem = round((double)(target - elapsed));
     bool is_neg = false;
     double elapsed_percent = target == 0 ? 0 : (double)((double)elapsed / target);
+    //ESP_LOGI(TAG_MAIN, "%ld", elapsed);
 
     if(elapsed_percent <= 0.5) {
         draw_as_normal(stint_rem_obj, remaining_time);
