@@ -347,7 +347,7 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lv_obj_set_style_border_side(sub_obj, LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);
 
     lv_obj_t* lap_time = lv_label_create(sub_obj);
-    lv_label_set_text_fmt(lap_time, "1:02.03");
+    lv_label_set_text_fmt(lap_time, "OFF");
     lv_obj_set_style_text_color(lap_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_time, LV_ALIGN_CENTER);
     lv_obj_set_style_text_font(lap_time, &lv_immono_38, LV_PART_MAIN);
@@ -355,7 +355,7 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lap_time_labels[i] = lap_time;
     
     lv_obj_t* lap_no = lv_label_create(sub_obj);
-    lv_label_set_text_fmt(lap_no, "%d", i);
+    lv_label_set_text(lap_no, "");
     lv_obj_set_style_text_color(lap_no, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_no, LV_ALIGN_LEFT_MID);
     lv_obj_set_style_text_font(lap_no, &lv_immono_28, LV_PART_MAIN);
@@ -444,7 +444,7 @@ void draw_as_critical(lv_obj_t* box, lv_obj_t* text) {
     lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
 }
 
-long last_lap_checksum = 0L;
+long last_lap_checksum = -1L;
 void lvgl_set_last_laps(struct lap_data lap_data) {
     long checksum = lap_data.best_lap + lap_data.last_laps[0].lap_time_ms;
     if(checksum == last_lap_checksum) {
@@ -467,7 +467,7 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
 }
 
 bool previously_running = false;
-long checksums[4] = {0};
+long checksums[4] = {-1};
 void lvgl_set_last_laps_main(struct lap_data lap_data) {    
     if(lap_data.current_lap != -1) {
         struct time_str time = convert_millis_to_time(lap_data.current_lap);
@@ -492,6 +492,13 @@ void lvgl_set_last_laps_main(struct lap_data lap_data) {
             continue;
         }
         checksums[i] = checksum;
+
+        if(lapNo <= 0) {
+            lv_label_set_text(lap_number_labels[i+1], "");
+            lv_label_set_text(lap_time_labels[i+1], "");
+            lv_label_set_text(lap_diff_labels[i+1], "");
+            continue;
+        }
 
         struct time_str time_in_str = convert_millis_to_time(time_in_ms);
         struct time_str diff_in_str = convert_millis_to_time(diff_in_ms);
@@ -554,9 +561,9 @@ void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed)
     lv_label_set_text_fmt(remaining_time, "%s%02d:%02d", is_neg ? "-": "", time.minutes, time.seconds);
 }
 
-double prev_oil_checksum = 0.0;
-double prev_water_checksum = 0.0;
-double prev_gas_checksum = 0.0;
+double prev_oil_checksum = -1;
+double prev_water_checksum = -1;
+double prev_gas_checksum = -1;
 void lvgl_set_temperatures(struct mcu_data data) {
     char temp[10];
     double checksum = data.oil.temp + data.oil.preassure;

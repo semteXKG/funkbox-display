@@ -19,10 +19,11 @@ char* TAG_BC = "broadcast";
 #define STATUS_MESSAGE_HEADER "STATUS|"
 
 void handle_stint(struct mcu_data* data, char* saveptr) {
+    bool enabled = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
     bool running = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
     long target = atol(strtok_r(NULL, ";", &saveptr));
     long elapsed = atol(strtok_r(NULL, ";", &saveptr));
-    data->stint.enabled = true;
+    data->stint.enabled = enabled;
     data->stint.running = running;
     data->stint.elapsed = elapsed;
     data->stint.target = target;
@@ -67,6 +68,7 @@ void parse_message(char* message) {
     long start = esp_timer_get_time();
 
     struct mcu_data* data = get_data();
+    struct mcu_data previous = *data;
 
     char *token, *subtoken;
     char *saveptr1, *saveptr2;
@@ -98,6 +100,8 @@ void parse_message(char* message) {
     }
 
     long end = esp_timer_get_time() - start;
+
+    
 
     ESP_LOGI(TAG_BC, "finished parsing in %ld", end);
 }

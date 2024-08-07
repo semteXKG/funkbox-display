@@ -36,6 +36,9 @@ void data_start() {
     memset(backing_oil_warn, 0, sizeof(struct car_sensor));
     backing_water_warn = (struct car_sensor*) malloc(sizeof(struct car_sensor));
     memset(backing_water_warn, 0, sizeof(struct car_sensor));
+    
+    backing_data->lap_data.current_lap = -1;
+
     TimerHandle_t timer = xTimerCreate("millisecondAdvancer",
                     pdMS_TO_TICKS(3),
                     pdTRUE,

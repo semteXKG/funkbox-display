@@ -1,2 +1,2 @@
-idf_component_register(SRCS "lv_immono_40.c" "lv_immono_38.c" "lv_immono_28.c" "lv_immono_20.c" "lv_immono_48.c" "data.c" "broadcast_socket.c" "wlan.c" "main.c" "lvgl_ui.c" 
+idf_component_register(SRCS "notifications.c" "lv_immono_40.c" "lv_immono_38.c" "lv_immono_28.c" "lv_immono_20.c" "lv_immono_48.c" "data.c" "broadcast_socket.c" "wlan.c" "main.c" "lvgl_ui.c" 
                        INCLUDE_DIRS ".")
