@@ -1,10 +1,5 @@
-#include "lvgl.h"
 #include "lvgl_ui.h"
-#include "esp_log.h"
-#include "stdio.h"
-#include "data.h"
-#include "math.h"
-#include "esp_timer.h"
+
 char* TAG_MAIN = "main_draw";
 
 #define HEIGHT 480
@@ -12,7 +7,6 @@ char* TAG_MAIN = "main_draw";
 #define COL_WIDTH 180
 #define DESC_WIDTH 30
 #define BORDER_SIZE 3
-#define DISPLAY_TIME_IN_US 5000000
 
 lv_style_t style;
 lv_style_t style_padding;
@@ -56,33 +50,8 @@ LV_FONT_DECLARE(lv_immono_28);
 LV_FONT_DECLARE(lv_immono_38);
 LV_FONT_DECLARE(lv_immono_40);
 LV_FONT_DECLARE(lv_immono_48);
+LV_FONT_DECLARE(lv_immono_bold_80);
 
-lv_color_t lv_color_ok() {
-    return lv_color_hex(0x00FF00);
-}
-
-lv_color_t lv_color_warn() {
-    return lv_color_hex(0xffb84d);
-}
-
-lv_color_t lv_color_crit() {
-    return lv_color_hex(0xff0000);
-}
-lv_color_t lv_desc_bg() {
-    return lv_color_hex(0x363B3B);
-}
-
-lv_color_t lv_cont_bg() {
-    return lv_color_hex(0x1F2222);
-}
-
-lv_color_t lv_main_bg() {
-    return lv_color_hex(0x2A2F2F);
-}
-
-lv_color_t lv_border_color() {
-    return lv_color_hex(0xCFCFCF);
-}
 
 void apply_styling(lv_obj_t* obj, lv_border_side_t additional_side)  {
     lv_obj_set_style_bg_color (obj, lv_cont_bg(), LV_PART_MAIN);
@@ -408,7 +377,7 @@ void create_notification_area(lv_obj_t* screen) {
     lv_obj_set_style_text_color(main_events_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(main_events_label, LV_ALIGN_CENTER);
     lv_obj_set_style_text_align(main_events_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_font(main_events_label, &lv_immono_48, LV_PART_MAIN);
+    lv_obj_set_style_text_font(main_events_label, &lv_immono_bold_80, LV_PART_MAIN);
 }
 
 void create_content(lv_obj_t* screen) {
@@ -618,73 +587,12 @@ void lvgl_set_temperatures(struct mcu_data data) {
     }
 }
 
-
-struct event* find_next_showing_event(struct mcu_data* data) {
-    for (int i = 0; i < 5; i++) {
-        if(data->events[i].displayed_since == 0) {
-            return &data->events[i];
-        }
-    }
-    return NULL;
-}
-
-int current_event_idx = 0;
-long current_event_showing_since = 0;
-void lvgl_set_events(struct mcu_data* data) {
-    if (current_event_showing_since != 0) {
-        if (esp_timer_get_time() - current_event_showing_since < DISPLAY_TIME_IN_US) {
-            return;
-        }
-        current_event_showing_since = 0;
-        current_event_idx = 0;
-        lv_obj_move_background(main_events_obj);
-    }
-    
-    struct event* non_disp_event = find_next_showing_event(data);
-    if(non_disp_event != NULL) {
-        lv_obj_move_foreground(main_events_obj);
-        switch (non_disp_event->severity) {
-            case POSITIVE:
-                lv_obj_set_style_bg_color(main_events_obj, lv_color_ok(), LV_PART_MAIN);
-                lv_obj_set_style_text_color(main_events_label, lv_color_black(), LV_PART_MAIN);
-            break;
-            case NORMAL:
-                lv_obj_set_style_bg_color(main_events_obj, lv_cont_bg(), LV_PART_MAIN);
-                lv_obj_set_style_text_color(main_events_label, lv_color_white(), LV_PART_MAIN);
-            break;
-            case WARN:
-               lv_obj_set_style_bg_color(main_events_obj, lv_color_warn(), LV_PART_MAIN);
-               lv_obj_set_style_text_color(main_events_label, lv_color_black(), LV_PART_MAIN);
-            break;
-            case CRIT:
-                lv_obj_set_style_bg_color(main_events_obj, lv_color_crit(), LV_PART_MAIN);
-                lv_obj_set_style_text_color(main_events_label, lv_color_black(), LV_PART_MAIN);
-            break;
-        }
-        current_event_idx = non_disp_event->id;
-
-        non_disp_event->displayed_since = esp_timer_get_time();
-        current_event_showing_since = non_disp_event->displayed_since;
-        if(strlen(non_disp_event->text) > 0) {
-            lv_label_set_text_fmt(main_events_label, "%s", non_disp_event->text);
-        } else {
-            lv_label_set_text(main_events_label, "");
-        }
-        
-    }
-}
-
 void lvgl_update_data() {
-    long start = esp_timer_get_time();
-
     struct mcu_data* data = get_data();
 
     lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, data->stint.elapsed);
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);
     lvgl_set_temperatures(*data);
-    lvgl_set_events(data);
-    
-    long end = esp_timer_get_time() - start;
-    //ESP_LOGI(TAG_MAIN, "Update took: %ld us", end);
+    lvgl_set_events(data, main_events_obj, main_events_label);
 }

@@ -1,0 +1,61 @@
+#include <event_display.h>
+
+#define DISPLAY_TIME_IN_US 5000000
+
+struct event* find_next_showing_event(struct mcu_data* data) {
+    for (int i = 0; i < 5; i++) {
+        if(data->events[i].displayed_since == 0) {
+            return &data->events[i];
+        }
+    }
+    return NULL;
+}
+
+int current_event_idx = 0;
+long current_event_showing_since = 0;
+
+void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
+    if (current_event_showing_since != 0) {
+        if (esp_timer_get_time() - current_event_showing_since < DISPLAY_TIME_IN_US) {
+            return;
+        }
+        current_event_showing_since = 0;
+        current_event_idx = 0;
+        lv_obj_move_background(object);
+    }
+   
+    struct event* non_disp_event = find_next_showing_event(data);
+    
+    if(non_disp_event != NULL) {
+        switch (non_disp_event->severity) {
+            case POSITIVE:
+                lv_obj_set_style_bg_color(object, lv_color_ok(), LV_PART_MAIN);
+                lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
+            break;
+            case NORMAL:
+                lv_obj_set_style_bg_color(object, lv_cont_bg(), LV_PART_MAIN);
+                lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+            break;
+            case WARN:
+               lv_obj_set_style_bg_color(object, lv_color_warn(), LV_PART_MAIN);
+               lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
+            break;
+            case CRIT:
+                lv_obj_set_style_bg_color(object, lv_color_crit(), LV_PART_MAIN);
+                lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
+            break;
+        }
+        current_event_idx = non_disp_event->id;
+
+        non_disp_event->displayed_since = esp_timer_get_time();
+        current_event_showing_since = non_disp_event->displayed_since;
+        
+        lv_obj_move_foreground(object);
+        if(strlen(non_disp_event->text) > 0) {
+            lv_label_set_text_fmt(label, "%s", non_disp_event->text);
+        } else {
+            lv_label_set_text(label, "");
+        }
+
+    }
+}
