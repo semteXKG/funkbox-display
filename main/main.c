@@ -283,6 +283,7 @@ void app_main(void)
             .flags.pclk_active_neg = true,
         },
         .flags.fb_in_psram = true, // allocate frame buffer in PSRAM
+        
     };
     ESP_ERROR_CHECK(esp_lcd_new_rgb_panel(&panel_config, &panel_handle));
 
@@ -352,10 +353,10 @@ void app_main(void)
         lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
     #else
         ESP_LOGI(TAG, "Allocate separate LVGL draw buffers from PSRAM");
-        buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+        buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
         assert(buf1);
         // initialize LVGL draw buffers
-        lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * 100);
+        lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
     #endif // CONFIG_EXAMPLE_DOUBLE_FB
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
