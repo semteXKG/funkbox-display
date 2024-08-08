@@ -12,6 +12,7 @@ char* TAG_MAIN = "main_draw";
 #define COL_WIDTH 180
 #define DESC_WIDTH 30
 #define BORDER_SIZE 3
+#define DISPLAY_TIME_IN_US 5000000
 
 lv_style_t style;
 lv_style_t style_padding;
@@ -32,7 +33,6 @@ lv_obj_t* main_laps_obj;
 lv_obj_t* main_stint_obj;
 lv_obj_t* main_events_obj;
 
-
 lv_obj_t* remaining_time;
 lv_obj_t* pb_time;
 lv_obj_t* ll_time;
@@ -45,10 +45,11 @@ lv_obj_t* oil_temp_message;
 lv_obj_t* oil_pres_message;
 lv_obj_t* gas_pres_message; 
 
-
 lv_obj_t* lap_number_labels[5];
 lv_obj_t* lap_time_labels[5];
 lv_obj_t* lap_diff_labels[5];
+
+lv_obj_t* main_events_label;
 
 LV_FONT_DECLARE(lv_immono_20);
 LV_FONT_DECLARE(lv_immono_28);
@@ -394,6 +395,22 @@ void create_main_laps(lv_obj_t* screen) {
     }
 }
 
+void create_notification_area(lv_obj_t* screen) {
+    main_events_obj = lv_obj_create(screen);
+    lv_obj_set_content_width(main_events_obj, 800 - 2*205);
+    lv_obj_set_content_height(main_events_obj, HEIGHT);
+    lv_obj_set_size(main_events_obj, 800 - 2*205, HEIGHT);
+    lv_obj_align(main_events_obj, LV_ALIGN_TOP_MID, 0, 0); 
+    lv_obj_move_background(main_events_obj);
+
+    main_events_label = lv_label_create(main_events_obj);
+    lv_label_set_text(main_events_label, "");
+    lv_obj_set_style_text_color(main_events_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_align(main_events_label, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_align(main_events_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_set_style_text_font(main_events_label, &lv_immono_48, LV_PART_MAIN);
+}
+
 void create_content(lv_obj_t* screen) {
     create_stint_timer(screen);
     create_lap_timer(screen);
@@ -404,6 +421,7 @@ void create_content(lv_obj_t* screen) {
     create_gas_status(screen);
 
     create_main_laps(screen);
+    create_notification_area(screen);
 
     create_desc_containers_left(screen);
     create_desc_labels_left(screen);
@@ -600,6 +618,62 @@ void lvgl_set_temperatures(struct mcu_data data) {
     }
 }
 
+
+struct event* find_next_showing_event(struct mcu_data* data) {
+    for (int i = 0; i < 5; i++) {
+        if(data->events[i].displayed_since == 0) {
+            return &data->events[i];
+        }
+    }
+    return NULL;
+}
+
+int current_event_idx = 0;
+long current_event_showing_since = 0;
+void lvgl_set_events(struct mcu_data* data) {
+    if (current_event_showing_since != 0) {
+        if (esp_timer_get_time() - current_event_showing_since < DISPLAY_TIME_IN_US) {
+            return;
+        }
+        current_event_showing_since = 0;
+        current_event_idx = 0;
+        lv_obj_move_background(main_events_obj);
+    }
+    
+    struct event* non_disp_event = find_next_showing_event(data);
+    if(non_disp_event != NULL) {
+        lv_obj_move_foreground(main_events_obj);
+        switch (non_disp_event->severity) {
+            case POSITIVE:
+                lv_obj_set_style_bg_color(main_events_obj, lv_color_ok(), LV_PART_MAIN);
+                lv_obj_set_style_text_color(main_events_label, lv_color_black(), LV_PART_MAIN);
+            break;
+            case NORMAL:
+                lv_obj_set_style_bg_color(main_events_obj, lv_cont_bg(), LV_PART_MAIN);
+                lv_obj_set_style_text_color(main_events_label, lv_color_white(), LV_PART_MAIN);
+            break;
+            case WARN:
+               lv_obj_set_style_bg_color(main_events_obj, lv_color_warn(), LV_PART_MAIN);
+               lv_obj_set_style_text_color(main_events_label, lv_color_black(), LV_PART_MAIN);
+            break;
+            case CRIT:
+                lv_obj_set_style_bg_color(main_events_obj, lv_color_crit(), LV_PART_MAIN);
+                lv_obj_set_style_text_color(main_events_label, lv_color_black(), LV_PART_MAIN);
+            break;
+        }
+        current_event_idx = non_disp_event->id;
+
+        non_disp_event->displayed_since = esp_timer_get_time();
+        current_event_showing_since = non_disp_event->displayed_since;
+        if(strlen(non_disp_event->text) > 0) {
+            lv_label_set_text_fmt(main_events_label, "%s", non_disp_event->text);
+        } else {
+            lv_label_set_text(main_events_label, "");
+        }
+        
+    }
+}
+
 void lvgl_update_data() {
     long start = esp_timer_get_time();
 
@@ -609,6 +683,8 @@ void lvgl_update_data() {
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);
     lvgl_set_temperatures(*data);
+    lvgl_set_events(data);
+    
     long end = esp_timer_get_time() - start;
     //ESP_LOGI(TAG_MAIN, "Update took: %ld us", end);
 }

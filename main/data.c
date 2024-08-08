@@ -38,6 +38,9 @@ void data_start() {
     memset(backing_water_warn, 0, sizeof(struct car_sensor));
     
     backing_data->lap_data.current_lap = -1;
+    for (int i = 0; i < 5; i++) {
+        backing_data->events[i].displayed_since = 1;
+    }
 
     TimerHandle_t timer = xTimerCreate("millisecondAdvancer",
                     pdMS_TO_TICKS(3),

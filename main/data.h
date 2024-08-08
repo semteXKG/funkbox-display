@@ -1,16 +1,31 @@
 #pragma once
 #include "stdbool.h"
 
-enum warn_status {
-    OK,
+enum severity {
+    POSITIVE,
+    NORMAL,
     WARN,
     CRIT
+};
+
+enum event_type {
+    LAP,
+    TIME_REMAIN,
+    STATE_CHANGE
+};
+
+struct event {
+    int id;
+    enum event_type type;
+    enum severity severity;
+    long created_at;
+    long displayed_since;
+    char text[100];
 };
 
 struct car_sensor {
     int temp;
     double preassure;
-
 };
 
 struct stint_data {
@@ -26,7 +41,6 @@ struct lap
     long lap_time_ms;
 };
 
-
 struct lap_data {
     int lap_no;
     long best_lap;
@@ -40,6 +54,7 @@ struct mcu_data {
     struct car_sensor gas;
     struct stint_data stint;
     struct lap_data lap_data;  
+    struct event events[5];
 };
 
 struct time_str {

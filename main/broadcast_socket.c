@@ -18,6 +18,8 @@ char* TAG_BC = "broadcast";
 
 #define STATUS_MESSAGE_HEADER "STATUS|"
 
+bool first_message = true;
+
 void handle_stint(struct mcu_data* data, char* saveptr) {
     bool enabled = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
     bool running = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
@@ -59,6 +61,66 @@ void handle_temp_pres(char* saveptr, struct car_sensor* sensor) {
     sensor->temp = temp;
 }
 
+struct event* find_old_entry(struct event* old_events, int id) {
+    for (int i = 0; i < 5; i++) {
+        if (old_events[i].id == id) {
+            return &old_events[i];
+        }
+    }
+    return NULL;
+}
+
+void handle_events(char* saveptr, struct mcu_data* data) {
+    // copy for state transition afterwards
+    struct event old_events[5];
+    memset(old_events, 0, sizeof(old_events));
+    memcpy(old_events, data->events, sizeof(data->events));
+
+    int idx = atoi(strtok_r(NULL, ";", &saveptr));
+    int id = atoi(strtok_r(NULL, ";", &saveptr));
+    char* type = strtok_r(NULL, ";", &saveptr);
+    
+    data->events[idx].created_at = esp_timer_get_time();
+    data->events[idx].displayed_since = first_message ? 1 : 0;
+    data->events[idx].id = id;
+
+    
+    // upon connect, don't display all old messages. nobody cares
+    struct event* old_data = find_old_entry(old_events, id);
+    if(old_data != NULL) {
+        data->events[idx].created_at = old_data->created_at;
+        data->events[idx].displayed_since = old_data->displayed_since;
+    }
+
+    if (strcmp(type, "Stint-time-left") == 0) {
+        // ignore last timestamp    
+        data->events[idx].type = TIME_REMAIN;
+        data->events[idx].severity = WARN;
+    } else if (strcmp(type, "Lap") == 0) {
+        int lap_number = atoi(strtok_r(NULL, ";", &saveptr));
+        int lap_time_ms = atol(strtok_r(NULL, ";", &saveptr));
+        int lap_diff_ms = atol(strtok_r(NULL, ";", &saveptr));
+        
+        data->events[idx].type = LAP;
+        data->events[idx].severity = ((lap_diff_ms < 0) ? POSITIVE : CRIT);
+
+        struct time_str ll = convert_millis_to_time(lap_time_ms);
+        struct time_str ll_diff = convert_millis_to_time(lap_diff_ms);
+
+        sprintf(data->events[idx].text, 
+                    "Lap %d\n%1d:%02d.%02d\n%s%1d.%02d\n", 
+                    lap_number,
+                    ll.minutes, ll.seconds, ll.milliseconds/10,
+                    (lap_diff_ms < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
+    } else if (strcmp(type, "State") == 0) {
+        char* target = strtok_r(NULL, ";", &saveptr);
+        char* state = strtok_r(NULL, ";", &saveptr);
+        data->events[idx].type = STATE_CHANGE;
+        data->events[idx].severity = NORMAL;
+        sprintf(data->events[idx].text, "%s\n%s", target, state);
+    }
+}
+
 void parse_message(char* message) {
     if (strncmp(STATUS_MESSAGE_HEADER, message, strlen(STATUS_MESSAGE_HEADER)) != 0) {
         ESP_LOGI(TAG_BC, "wrong message, skip");
@@ -68,7 +130,6 @@ void parse_message(char* message) {
     long start = esp_timer_get_time();
 
     struct mcu_data* data = get_data();
-    struct mcu_data previous = *data;
 
     char *token, *subtoken;
     char *saveptr1, *saveptr2;
@@ -92,17 +153,17 @@ void parse_message(char* message) {
             handle_temp_pres(saveptr2,  &data->oil);
         } else if (strcmp(subtoken, "GAS") == 0) {
             handle_temp_pres(saveptr2, &data->gas);
-        }else if (strcmp(subtoken, "OIL_WARN") == 0) {
+        } else if (strcmp(subtoken, "OIL_WARN") == 0) {
             handle_temp_pres(saveptr2, get_oil_warn());
-        }else if (strcmp(subtoken, "WATER_WARN") == 0) {
+        } else if (strcmp(subtoken, "WATER_WARN") == 0) {
             handle_temp_pres(saveptr2, get_water_warn());
+        } else if (strcmp(subtoken, "EVT") == 0) {
+            handle_events(saveptr2, data);
         }
     }
 
     long end = esp_timer_get_time() - start;
-
-    
-
+    first_message = false;
     ESP_LOGI(TAG_BC, "finished parsing in %ld", end);
 }
 
