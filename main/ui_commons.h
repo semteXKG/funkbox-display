@@ -19,4 +19,11 @@ lv_color_t lv_main_bg();
 
 lv_color_t lv_border_color();
 
+
+void draw_as_normal(lv_obj_t* box, lv_obj_t* text);
+
+void draw_as_warn(lv_obj_t* box, lv_obj_t* text);
+
+void draw_as_critical(lv_obj_t* box, lv_obj_t* text);
+
 #endif

@@ -40,6 +40,7 @@ void data_start() {
     backing_data->lap_data.current_lap = -1;
     for (int i = 0; i < 5; i++) {
         backing_data->events[i].displayed_since = 1;
+        backing_data->commands[i].handled = 1;
     }
 
     TimerHandle_t timer = xTimerCreate("millisecondAdvancer",

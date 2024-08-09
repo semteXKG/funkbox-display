@@ -77,25 +77,28 @@ void handle_events(char* saveptr, struct mcu_data* data) {
     memcpy(old_events, data->events, sizeof(data->events));
 
     int idx = atoi(strtok_r(NULL, ";", &saveptr));
-    int id = atoi(strtok_r(NULL, ";", &saveptr));
+    char* id_str = strtok_r(NULL, ";", &saveptr);
+    int id = atoi(id_str);
     char* type = strtok_r(NULL, ";", &saveptr);
     
-    data->events[idx].created_at = esp_timer_get_time();
-    data->events[idx].displayed_since = first_message ? 1 : 0;
     data->events[idx].id = id;
-
-    
+    ESP_LOGI(TAG_BC, "Processing %s from %d", id_str, id);
+   
     // upon connect, don't display all old messages. nobody cares
     struct event* old_data = find_old_entry(old_events, id);
-    if(old_data != NULL) {
-        data->events[idx].created_at = old_data->created_at;
-        data->events[idx].displayed_since = old_data->displayed_since;
-    }
-
-    if (strcmp(type, "Stint-time-left") == 0) {
+    data->events[idx].created_at = old_data != NULL ? old_data->created_at : esp_timer_get_time();
+    data->events[idx].displayed_since = old_data != NULL ? old_data->displayed_since : (first_message ? 1 : 0);
+  
+    if (strcmp(type, "STL") == 0) {
         // ignore last timestamp    
         data->events[idx].type = TIME_REMAIN;
         data->events[idx].severity = WARN;
+        struct time_str ll = convert_millis_to_time(data->stint.target - data->stint.elapsed);
+        if (ll.minutes != 0) {
+            sprintf(data->events[idx].text, "%d min\nLEFT", ll.minutes);
+        } else {
+            sprintf(data->events[idx].text, "%d sec\nLEFT", ll.seconds);
+        }
     } else if (strcmp(type, "Lap") == 0) {
         int lap_number = atoi(strtok_r(NULL, ";", &saveptr));
         int lap_time_ms = atol(strtok_r(NULL, ";", &saveptr));
@@ -108,7 +111,7 @@ void handle_events(char* saveptr, struct mcu_data* data) {
         struct time_str ll_diff = convert_millis_to_time(lap_diff_ms);
 
         sprintf(data->events[idx].text, 
-                    "Lap %d\n%1d:%02d.%02d\n%s%1d.%02d\n", 
+                    "Lap %d\n%1d:%02d.%02d\n%s%1d.%02d", 
                     lap_number,
                     ll.minutes, ll.seconds, ll.milliseconds/10,
                     (lap_diff_ms < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
@@ -120,6 +123,18 @@ void handle_events(char* saveptr, struct mcu_data* data) {
         sprintf(data->events[idx].text, "%s\n%s", target, state);
     }
 }
+
+void handle_comms(char* saveptr, struct mcu_data* data) {
+    int idx = atoi(strtok_r(NULL, ";", &saveptr));
+    enum command_type type = atoi(strtok_r(NULL, ";", &saveptr));
+    long created_at = atol(strtok_r(NULL, ";", &saveptr));
+    long handled_at = atol(strtok_r(NULL, ";", &saveptr));
+
+    data->commands[idx].type = type;
+    data->commands[idx].created = created_at;
+    data->commands[idx].handled = handled_at;
+}
+
 
 void parse_message(char* message) {
     if (strncmp(STATUS_MESSAGE_HEADER, message, strlen(STATUS_MESSAGE_HEADER)) != 0) {
@@ -159,6 +174,8 @@ void parse_message(char* message) {
             handle_temp_pres(saveptr2, get_water_warn());
         } else if (strcmp(subtoken, "EVT") == 0) {
             handle_events(saveptr2, data);
+        } else if (strcmp(subtoken, "COM") == 0) {
+            handle_comms(saveptr2, data);
         }
     }
 

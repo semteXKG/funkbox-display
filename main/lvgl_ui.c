@@ -414,23 +414,6 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
     create_content(screen);
 }
 
-void draw_as_normal(lv_obj_t* box, lv_obj_t* text) {
-    lv_obj_set_style_bg_color(box, lv_cont_bg(), LV_PART_MAIN);
-    lv_obj_set_style_text_color(text, lv_color_white(), LV_PART_MAIN);
-}
-
-
-void draw_as_warn(lv_obj_t* box, lv_obj_t* text) {
-    lv_obj_set_style_bg_color(box, lv_color_warn(), LV_PART_MAIN);
-    lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
-}
-
-
-void draw_as_critical(lv_obj_t* box, lv_obj_t* text) {
-    lv_obj_set_style_bg_color(box, lv_color_crit(), LV_PART_MAIN);
-    lv_obj_set_style_text_color(text, lv_color_black(), LV_PART_MAIN);
-}
-
 long last_lap_checksum = -1L;
 void lvgl_set_last_laps(struct lap_data lap_data) {
     long checksum = lap_data.best_lap + lap_data.last_laps[0].lap_time_ms;
@@ -594,5 +577,7 @@ void lvgl_update_data() {
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);
     lvgl_set_temperatures(*data);
-    lvgl_set_events(data, main_events_obj, main_events_label);
+    if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
+        lvgl_set_events(data, main_events_obj, main_events_label);
+    }
 }

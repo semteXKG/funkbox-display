@@ -1,6 +1,8 @@
 #include <event_display.h>
 
-#define DISPLAY_TIME_IN_US 5000000
+#define DISPLAY_TIME_IN_US 3000000
+
+static const char* EVENT_TAG = "event";
 
 struct event* find_next_showing_event(struct mcu_data* data) {
     for (int i = 0; i < 5; i++) {
@@ -25,8 +27,8 @@ void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
     }
    
     struct event* non_disp_event = find_next_showing_event(data);
-    
     if(non_disp_event != NULL) {
+        ESP_LOGI(EVENT_TAG, "found event with id for display: %d", non_disp_event->id);
         switch (non_disp_event->severity) {
             case POSITIVE:
                 lv_obj_set_style_bg_color(object, lv_color_ok(), LV_PART_MAIN);
@@ -45,10 +47,10 @@ void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
                 lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
             break;
         }
-        current_event_idx = non_disp_event->id;
 
-        non_disp_event->displayed_since = esp_timer_get_time();
-        current_event_showing_since = non_disp_event->displayed_since;
+        long curr_time = esp_timer_get_time();
+        non_disp_event->displayed_since = curr_time;
+        current_event_showing_since = curr_time;
         
         lv_obj_move_foreground(object);
         if(strlen(non_disp_event->text) > 0) {

@@ -14,13 +14,25 @@ enum event_type {
     STATE_CHANGE
 };
 
-struct event {
+struct  event {
     int id;
     enum event_type type;
     enum severity severity;
     long created_at;
     long displayed_since;
     char text[100];
+};
+
+enum command_type {
+    PIT,
+    STINT_OVER,
+    TBD
+};
+
+struct command {
+    enum command_type type;
+    long created;
+    long handled;
 };
 
 struct car_sensor {
@@ -55,6 +67,7 @@ struct mcu_data {
     struct stint_data stint;
     struct lap_data lap_data;  
     struct event events[5];
+    struct command commands[5];
 };
 
 struct time_str {
