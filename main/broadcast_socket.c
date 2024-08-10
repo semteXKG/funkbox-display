@@ -16,7 +16,7 @@ int sock;
 
 char* TAG_BC = "broadcast";
 
-#define STATUS_MESSAGE_HEADER "STATUS|"
+#define STATUS_MESSAGE_HEADER "STATUS;"
 
 bool first_message = true;
 
@@ -82,7 +82,6 @@ void handle_events(char* saveptr, struct mcu_data* data) {
     char* type = strtok_r(NULL, ";", &saveptr);
     
     data->events[idx].id = id;
-    ESP_LOGI(TAG_BC, "Processing %s from %d", id_str, id);
    
     // upon connect, don't display all old messages. nobody cares
     struct event* old_data = find_old_entry(old_events, id);
@@ -135,6 +134,10 @@ void handle_comms(char* saveptr, struct mcu_data* data) {
     data->commands[idx].handled = handled_at;
 }
 
+void handle_status(struct mcu_data* data, char* saveptr) {
+    long timestamp_since_power_up = atol(strtok_r(NULL, ";", &saveptr));
+    data->network_time_adjustment = (esp_timer_get_time() / 1000) - timestamp_since_power_up;
+} 
 
 void parse_message(char* message) {
     if (strncmp(STATUS_MESSAGE_HEADER, message, strlen(STATUS_MESSAGE_HEADER)) != 0) {
@@ -156,7 +159,9 @@ void parse_message(char* message) {
          token = strtok_r(NULL, "|", &saveptr1)) {   
                 
         subtoken = strtok_r(token, ";", &saveptr2);
-        if(strcmp(subtoken, "STNT") == 0) {
+         if(strcmp(subtoken, "STATUS") == 0) {
+            handle_status(data, saveptr2);
+        } if(strcmp(subtoken, "STNT") == 0) {
             handle_stint(data, saveptr2);
         } else if (strcmp(subtoken, "LAP") == 0) {
             handle_lap(data, saveptr2);

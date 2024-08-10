@@ -61,6 +61,7 @@ struct lap_data {
 };
 
 struct mcu_data {
+    long network_time_adjustment;
     struct car_sensor water;
     struct car_sensor oil;
     struct car_sensor gas;

@@ -58,7 +58,7 @@ void apply_styling(lv_obj_t* obj, lv_border_side_t additional_side)  {
     lv_obj_set_style_border_color(obj, lv_border_color(), LV_PART_MAIN);
     lv_obj_set_style_border_width(obj, 3, LV_PART_MAIN);
     lv_obj_set_style_border_side(obj, additional_side | LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);    
 }
 
 void create_stint_timer(lv_obj_t* screen) {
@@ -222,15 +222,15 @@ void create_radio_timer(lv_obj_t* screen) {
 
     radio_last_message = lv_label_create(radio_obj);
     lv_obj_set_style_text_font(radio_last_message, &lv_immono_48, 0);
-    lv_label_set_text(radio_last_message, "PIT");
+    lv_label_set_text(radio_last_message, "OFF");
     lv_obj_set_style_text_color(radio_last_message, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(radio_last_message, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(radio_last_message, LV_ALIGN_TOP_MID, 0, 0);
 
     radio_last_message_time_ago = lv_label_create(radio_obj);
     lv_obj_set_style_text_font(radio_last_message_time_ago, &lv_immono_28, 0);
-    lv_label_set_text(radio_last_message_time_ago, "4m ago");
+    lv_label_set_text(radio_last_message_time_ago, "-");
     lv_obj_set_style_text_color(radio_last_message_time_ago, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align_to(radio_last_message_time_ago, radio_last_message, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+    lv_obj_align(radio_last_message_time_ago, LV_ALIGN_BOTTOM_MID, 0, 0);
 }
 
 
@@ -368,19 +368,23 @@ void create_notification_area(lv_obj_t* screen) {
     main_events_obj = lv_obj_create(screen);
     lv_obj_set_content_width(main_events_obj, 800 - 2*205);
     lv_obj_set_content_height(main_events_obj, HEIGHT);
-    lv_obj_set_size(main_events_obj, 800 - 2*205, HEIGHT);
+    lv_obj_set_size(main_events_obj, 800 - 2*205, HEIGHT);  
     lv_obj_align(main_events_obj, LV_ALIGN_TOP_MID, 0, 0); 
     lv_obj_move_background(main_events_obj);
 
     main_events_label = lv_label_create(main_events_obj);
+    
     lv_label_set_text(main_events_label, "");
     lv_obj_set_style_text_color(main_events_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(main_events_label, LV_ALIGN_CENTER);
     lv_obj_set_style_text_align(main_events_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(main_events_label, &lv_immono_bold_80, LV_PART_MAIN);
+    lv_obj_set_style_text_line_space(main_events_label, 30, LV_PART_MAIN);
 }
 
 void create_content(lv_obj_t* screen) {
+    create_notification_area(screen);
+
     create_stint_timer(screen);
     create_lap_timer(screen);
     create_radio_timer(screen);
@@ -390,7 +394,6 @@ void create_content(lv_obj_t* screen) {
     create_gas_status(screen);
 
     create_main_laps(screen);
-    create_notification_area(screen);
 
     create_desc_containers_left(screen);
     create_desc_labels_left(screen);
@@ -570,12 +573,46 @@ void lvgl_set_temperatures(struct mcu_data data) {
     }
 }
 
+char* type_to_string(enum command_type type) {
+    switch (type) {
+        case PIT: return "PIT";
+        case STINT_OVER: return "STINT";
+        case TBD: return "TBD";
+        default: return "";
+    }
+}
+
+
+long last_comms_checksum = -1;
+void lvgl_set_last_comms(long timestamp_adjustment, struct command* commands) {
+    struct command* newest = NULL;
+    for (int i = 0; i < 5; i++) {
+        if(commands[i].created > 0 && (newest == NULL || commands[i].created > newest->created)) {
+            newest = &commands[i];
+        }
+    }
+    if(newest == NULL) {
+        return;
+    }
+
+    struct time_str time_since = convert_millis_to_time(esp_timer_get_time()/1000 - newest->created - timestamp_adjustment);
+    long checksum = time_since.minutes + newest->created;
+    if(checksum == last_comms_checksum) {
+        return;
+    }
+    last_comms_checksum = checksum;
+    lv_label_set_text(radio_last_message, type_to_string(newest->type));
+    lv_label_set_text_fmt(radio_last_message_time_ago, "%d m ago", time_since.minutes);
+}
+
+
 void lvgl_update_data() {
     struct mcu_data* data = get_data();
 
     lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, data->stint.elapsed);
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);
+    lvgl_set_last_comms(data->network_time_adjustment, data->commands);
     lvgl_set_temperatures(*data);
     if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
         lvgl_set_events(data, main_events_obj, main_events_label);
