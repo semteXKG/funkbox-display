@@ -365,6 +365,9 @@ void create_main_laps(lv_obj_t* screen) {
 }
 
 void create_notification_area(lv_obj_t* screen) {
+    lv_style_init(&error_box_style);
+
+
     main_events_obj = lv_obj_create(screen);
     lv_obj_set_content_width(main_events_obj, 800 - 2*205);
     lv_obj_set_content_height(main_events_obj, HEIGHT);
