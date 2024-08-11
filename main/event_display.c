@@ -14,13 +14,14 @@ struct event* find_next_showing_event(struct mcu_data* data) {
 }
 
 int current_event_idx = 0;
-long current_event_showing_since = 0;
-
+int64_t current_event_showing_since = 0;
 void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
     if (current_event_showing_since != 0) {
         if (esp_timer_get_time() - current_event_showing_since < DISPLAY_TIME_IN_US) {
             return;
         }
+        ESP_LOGI(EVENT_TAG, "EVENT DONE, started %"PRId64", now %"PRId64, current_event_showing_since, esp_timer_get_time());
+
         current_event_showing_since = 0;
         current_event_idx = 0;
         lv_obj_move_background(object);
@@ -48,7 +49,7 @@ void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
             break;
         }
 
-        long curr_time = esp_timer_get_time();
+        int64_t curr_time = esp_timer_get_time();
         non_disp_event->displayed_since = curr_time;
         current_event_showing_since = curr_time;
         

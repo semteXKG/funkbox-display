@@ -1,5 +1,6 @@
 #pragma once
 #include "stdbool.h"
+#include "inttypes.h"
 
 enum severity {
     POSITIVE,
@@ -19,7 +20,7 @@ struct  event {
     enum event_type type;
     enum severity severity;
     long created_at;
-    long displayed_since;
+    int64_t displayed_since;
     char text[100];
 };
 

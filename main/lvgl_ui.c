@@ -490,7 +490,7 @@ void lvgl_set_last_laps_main(struct lap_data lap_data) {
 
 long stint_timer_checksum = -1L;
 void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed) {
-    long checksum = enabled + running + target + elapsed;
+    long checksum = enabled + running + target/500 + elapsed/500;
     if (checksum == stint_timer_checksum) {
         return;
     }
