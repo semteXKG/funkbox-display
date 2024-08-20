@@ -2,8 +2,13 @@
 
 #define EXAMPLE_ESP_MAXIMUM_RETRY  10
 
-#define CONFIG_SSID "funkbox-car-main"
-#define CONFIG_PWD "funkbox-car-main"
+#if PRIMARY
+    #define CONFIG_SSID "funkbox-car-prim"
+    #define CONFIG_PWD "funkbox-car-prim"
+#else
+    #define CONFIG_SSID "funkbox-car-sec"
+    #define CONFIG_PWD "funkbox-car-sec"
+#endif
 
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_BOTH

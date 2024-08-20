@@ -215,6 +215,20 @@ static void example_lvgl_touch_cb(lv_indev_drv_t * drv, lv_indev_data_t * data)
         data->state = LV_INDEV_STATE_REL;
     }
 }
+
+void print_status() {
+    ESP_LOGI("main", "----------------------------------------------------------");
+    ESP_LOGI("main", "|--------------------------------------------------------|");
+    #if PRIMARY
+        ESP_LOGI("main", "|----PRIMARY---PRIMARY---PRIMARY---PRIMARY---PRIMARY-----|");
+    #else
+        ESP_LOGI("main", "|-----SECONDARY---SECONDARY---SECONDARY---SECONDARTY-----|");
+    #endif
+    ESP_LOGI("main", "|--------------------------------------------------------|");
+    ESP_LOGI("main", "----------------------------------------------------------");
+}
+
+
 void app_main(void)
 {
     static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
@@ -404,4 +418,5 @@ void app_main(void)
     }
     
     xTaskCreate(lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
+    print_status();
 }
