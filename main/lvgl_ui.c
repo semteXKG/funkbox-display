@@ -612,7 +612,7 @@ void lvgl_update_data() {
     lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, data->stint.elapsed);
     lvgl_set_last_laps(data->lap_data);
     lvgl_set_last_laps_main(data->lap_data);
-    lvgl_set_last_comms(data->network_time_adjustment, data->commands);
+    lvgl_set_last_comms(data->network_time_adjustment, data->incoming_commands);
     lvgl_set_temperatures(*data);
     if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
         lvgl_set_events(data, main_events_obj, main_events_label);

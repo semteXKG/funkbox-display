@@ -16,8 +16,6 @@ int sock;
 
 char* TAG_BC = "broadcast";
 
-#define STATUS_MESSAGE_HEADER "STATUS;"
-
 bool first_message = true;
 
 void handle_stint(struct mcu_data* data, char* saveptr) {
@@ -129,9 +127,9 @@ void handle_comms(char* saveptr, struct mcu_data* data) {
     long created_at = atol(strtok_r(NULL, ";", &saveptr));
     long handled_at = atol(strtok_r(NULL, ";", &saveptr));
 
-    data->commands[idx].type = type;
-    data->commands[idx].created = created_at;
-    data->commands[idx].handled = handled_at;
+    data->incoming_commands[idx].type = type;
+    data->incoming_commands[idx].created = created_at;
+    data->incoming_commands[idx].handled = handled_at;
 }
 
 void handle_status(struct mcu_data* data, char* saveptr) {
@@ -139,12 +137,11 @@ void handle_status(struct mcu_data* data, char* saveptr) {
     data->network_time_adjustment = (esp_timer_get_time() / 1000) - timestamp_since_power_up;
 } 
 
-void parse_message(char* message) {
-    if (strncmp(STATUS_MESSAGE_HEADER, message, strlen(STATUS_MESSAGE_HEADER)) != 0) {
-        ESP_LOGI(TAG_BC, "wrong message, skip");
-        return;
-    }
+void parse_binary(char* message) {
+    memcpy(get_data(), message, sizeof(struct mcu_data));
+}
 
+void parse_message(char* message) {
     long start = esp_timer_get_time();
 
     struct mcu_data* data = get_data();
@@ -332,7 +329,7 @@ void listen_broadcast(void *pvParameters)
             } else if (s > 0) {
                 if (FD_ISSET(sock, &rfds)) {
                     // Incoming daTAG_BCram received
-                    char recvbuf[500];
+                    char recvbuf[sizeof(struct mcu_data)];
                     char raddr_name[32] = { 0 };
                     struct sockaddr_storage raddr; // Large enough for both IPv4 or IPv6
                     socklen_t socklen = sizeof(raddr);
@@ -349,11 +346,8 @@ void listen_broadcast(void *pvParameters)
                                     raddr_name, sizeof(raddr_name)-1);
                     }
                     ESP_LOGI(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
-
-                    recvbuf[len] = 0; // Null-terminate whatever we received and treat like a string...
-                    ESP_LOGI(TAG_BC,"%s", recvbuf);
-
-                    parse_message(recvbuf);
+                    parse_binary(recvbuf);
+                    ESP_LOGI(TAG_BC,"Done");
                 }
             }
         }

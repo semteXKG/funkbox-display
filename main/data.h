@@ -19,7 +19,7 @@ struct  event {
     int id;
     enum event_type type;
     enum severity severity;
-    long created_at;
+    int64_t created_at;
     int64_t displayed_since;
     char text[100];
 };
@@ -32,8 +32,8 @@ enum command_type {
 
 struct command {
     enum command_type type;
-    long created;
-    long handled;
+    int64_t created;
+    int64_t handled;
 };
 
 struct car_sensor {
@@ -44,14 +44,14 @@ struct car_sensor {
 struct stint_data {
     bool running;
     bool enabled;
-    long target;
-    long elapsed;
+    int64_t target;
+    int64_t elapsed;
 };
 
 struct lap
 {
     int lap_no;
-    long lap_time_ms;
+    int64_t lap_time_ms;
 };
 
 struct lap_data {
@@ -69,7 +69,8 @@ struct mcu_data {
     struct stint_data stint;
     struct lap_data lap_data;  
     struct event events[5];
-    struct command commands[5];
+    struct command outgoing_commands[5];
+    struct command incoming_commands[5];
 };
 
 struct time_str {

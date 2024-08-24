@@ -4,8 +4,8 @@ static const char* EVENT_TAG = "command";
 
 struct command* find_first_active(struct mcu_data* data) {
     for (int i = 0; i < 5; i++) {
-        if(data->commands[i].handled == 0) {
-            return &data->commands[i];
+        if(data->incoming_commands[i].handled == 0) {
+            return &data->incoming_commands[i];
         }
     }
     return NULL;
