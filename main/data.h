@@ -2,6 +2,8 @@
 #include "stdbool.h"
 #include "inttypes.h"
 
+#define MAX_LAPS 5
+
 enum severity {
     POSITIVE,
     NORMAL,
@@ -69,8 +71,11 @@ struct mcu_data {
     struct stint_data stint;
     struct lap_data lap_data;  
     struct event events[5];
+    int events_cnt;
     struct command outgoing_commands[5];
+    int outgoing_commands_last_idx;
     struct command incoming_commands[5];
+    int incoming_commands_last_idx;
 };
 
 struct time_str {
@@ -86,5 +91,6 @@ struct car_sensor* get_water_warn();
 void data_start();
 
 struct time_str convert_millis_to_time(long millis);
+struct time_str convert_i64t_millis_to_time(int64_t millis);
 
 bool should_blink();

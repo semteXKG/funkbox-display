@@ -82,19 +82,19 @@ void create_lap_timer(lv_obj_t* screen) {
 
     pb_time = lv_label_create(lap_timer_obj);
     lv_obj_set_style_text_font(pb_time, &lv_immono_40, 0);
-    lv_label_set_text(pb_time, "1:16.10");
+    lv_label_set_text(pb_time, "-");
     lv_obj_set_style_text_color(pb_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(pb_time, LV_ALIGN_TOP_MID, 0, 0);
 
     ll_time = lv_label_create(lap_timer_obj);
     lv_obj_set_style_text_font(ll_time, &lv_immono_40, 0);
-    lv_label_set_text(ll_time, "1:17.66");
+    lv_label_set_text(ll_time, "-");
     lv_obj_set_style_text_color(ll_time, lv_color_white(), LV_PART_MAIN);
     lv_obj_align(ll_time, LV_ALIGN_CENTER, 0, 0);
 
     ll_time_diff = lv_label_create(lap_timer_obj);
     lv_obj_set_style_text_font(ll_time_diff, &lv_immono_40, 0);
-    lv_label_set_text(ll_time_diff, "-0.06");
+    lv_label_set_text(ll_time_diff, "");
     lv_obj_set_style_text_color(ll_time_diff, lv_color_ok(), LV_PART_MAIN);
     lv_obj_set_style_text_align(ll_time_diff, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(ll_time_diff, LV_ALIGN_BOTTOM_MID, 0, 0);
@@ -317,9 +317,9 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lv_obj_set_style_border_side(sub_obj, LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);
 
     lv_obj_t* lap_time = lv_label_create(sub_obj);
-    lv_label_set_text_fmt(lap_time, "OFF");
+    lv_label_set_text(lap_time, "");
     lv_obj_set_style_text_color(lap_time, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_align(lap_time, LV_ALIGN_CENTER);
+    lv_obj_align(lap_time, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_text_font(lap_time, &lv_immono_38, LV_PART_MAIN);
 
     lap_time_labels[i] = lap_time;
@@ -336,7 +336,7 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     }
 
     lv_obj_t* lap_diff = lv_label_create(sub_obj);
-    lv_label_set_text_fmt(lap_diff, "%d", i);
+    lv_label_set_text(lap_diff, "");
     lv_obj_set_style_text_color(lap_diff, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_diff, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_text_font(lap_diff, &lv_immono_28, LV_PART_MAIN);
@@ -419,7 +419,11 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
 
 long last_lap_checksum = -1L;
 void lvgl_set_last_laps(struct lap_data lap_data) {
-    long checksum = lap_data.best_lap + lap_data.last_laps[0].lap_time_ms;
+    if(lap_data.lap_no == 1) {
+        return;
+    }  
+
+    long checksum = lap_data.best_lap + lap_data.last_laps[(lap_data.lap_no-2)%MAX_LAPS].lap_time_ms;
     if(checksum == last_lap_checksum) {
         return;
     }
@@ -428,15 +432,17 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
     struct time_str pb = convert_millis_to_time(lap_data.best_lap);
     lv_label_set_text_fmt(pb_time, "%1d:%02d.%02d", pb.minutes, pb.seconds, pb.milliseconds/10);
     
-    struct time_str ll = convert_millis_to_time(lap_data.last_laps[0].lap_time_ms);
+    struct time_str ll = convert_millis_to_time(lap_data.last_laps[(lap_data.lap_no-2)%MAX_LAPS].lap_time_ms);
     lv_label_set_text_fmt(ll_time, "%1d:%02d.%02d", ll.minutes, ll.seconds, ll.milliseconds/10);
 
-    long diff = lap_data.last_laps[0].lap_time_ms - lap_data.last_laps[1].lap_time_ms;
-    struct time_str ll_diff = convert_millis_to_time(diff);
+    if(lap_data.lap_no > 1) {
+        long diff = lap_data.last_laps[(lap_data.lap_no-2)%MAX_LAPS].lap_time_ms - lap_data.last_laps[(lap_data.lap_no-3)%MAX_LAPS].lap_time_ms;
+        struct time_str ll_diff = convert_millis_to_time(diff);
 
-    lv_obj_set_style_text_color(ll_time_diff, (diff > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
+        lv_obj_set_style_text_color(ll_time_diff, (diff > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
 
-    lv_label_set_text_fmt(ll_time_diff, "%s%1d.%02d", (diff < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
+        lv_label_set_text_fmt(ll_time_diff, "%s%1d.%02d", (diff < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
+    }
 }
 
 bool previously_running = false;
@@ -454,37 +460,46 @@ void lvgl_set_last_laps_main(struct lap_data lap_data) {
         lv_label_set_text(lap_number_labels[0], "");
     }
     previously_running = lap_data.current_lap != -1;
-
-    for (int i = 0; i < 4; i++) {
-        long time_in_ms = lap_data.last_laps[i].lap_time_ms;
-        long diff_in_ms = time_in_ms - lap_data.last_laps[i+1].lap_time_ms;
-        int lapNo = lap_data.lap_no - i;
+    int control_index = 0;
+    for (int i = lap_data.lap_no - 2; 
+         i >= lap_data.lap_no - 5 && i >= 0; 
+         i--) {
         
+        control_index++;
+        
+        
+        int64_t time_in_ms = lap_data.last_laps[i%MAX_LAPS].lap_time_ms;
+        int64_t diff_in_ms = time_in_ms - lap_data.last_laps[(i > 0 ? i - 1 : 0)%MAX_LAPS].lap_time_ms;
+        int lapNo = lap_data.last_laps[i%MAX_LAPS].lap_no;
+        
+        //ESP_LOGI(TAG_MAIN, "Current Array Index [%d], Mod Index [%d] Control Index [%d]", i, i%MAX_LAPS, control_index);
+        //ESP_LOGI(TAG_MAIN, "Time [%"PRId64"], diff [%"PRId64"], lapNo [%d]", time_in_ms, diff_in_ms, lapNo);
+
         long checksum = time_in_ms + diff_in_ms + lapNo;
-        if(checksum == checksums[i]) {
+        if(checksum == checksums[control_index%4]) {
             continue;
         }
-        checksums[i] = checksum;
+        checksums[control_index%4] = checksum;
+        if (diff_in_ms > 99990) {
+            diff_in_ms = 99990;
+        }
 
-        if(lapNo <= 0) {
-            lv_label_set_text(lap_number_labels[i+1], "");
-            lv_label_set_text(lap_time_labels[i+1], "");
-            lv_label_set_text(lap_diff_labels[i+1], "");
-            continue;
+        if (diff_in_ms < -99990) {
+            diff_in_ms = -99990;
         }
 
         struct time_str time_in_str = convert_millis_to_time(time_in_ms);
         struct time_str diff_in_str = convert_millis_to_time(diff_in_ms);
         
-        lv_label_set_text_fmt(lap_number_labels[i+1], "%d", lapNo);
-        lv_label_set_text_fmt(lap_time_labels[i+1], "%d:%02d.%02d", time_in_str.minutes, time_in_str.seconds, time_in_str.milliseconds / 10);
+        lv_label_set_text_fmt(lap_number_labels[control_index], "%d", lapNo);
+        lv_label_set_text_fmt(lap_time_labels[control_index], "%d:%02d.%02d", time_in_str.minutes, time_in_str.seconds, time_in_str.milliseconds / 10);
         lv_label_set_text_fmt(
-            lap_diff_labels[i+1], 
+            lap_diff_labels[control_index], 
             "%s%d.%02d", 
             (diff_in_ms > 0 ? "+" : "-"), 
             diff_in_str.seconds + (60*diff_in_str.minutes), 
             diff_in_str.milliseconds / 10);
-        lv_obj_set_style_text_color(lap_diff_labels[i+1], (diff_in_ms > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
+        lv_obj_set_style_text_color(lap_diff_labels[control_index], (diff_in_ms > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
     }
 }
 

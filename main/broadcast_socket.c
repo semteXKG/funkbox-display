@@ -137,8 +137,16 @@ void handle_status(struct mcu_data* data, char* saveptr) {
     data->network_time_adjustment = (esp_timer_get_time() / 1000) - timestamp_since_power_up;
 } 
 
+void print_data(struct mcu_data* data) {
+    ESP_LOGI(TAG_BC, "LapNo [%d], Best [%ld], Current [%ld]", data->lap_data.lap_no, data->lap_data.best_lap, data->lap_data.current_lap);
+    for (int i = 0; i < 5; i++) {
+        ESP_LOGI(TAG_BC, "[%d] LapNo [%d], Time [%"PRId64"]", i, data->lap_data.last_laps[i].lap_no, data->lap_data.last_laps[i].lap_time_ms);
+    }
+}
+
 void parse_binary(char* message) {
     memcpy(get_data(), message, sizeof(struct mcu_data));
+    print_data(get_data());
 }
 
 void parse_message(char* message) {
@@ -333,7 +341,7 @@ void listen_broadcast(void *pvParameters)
                     char raddr_name[32] = { 0 };
                     struct sockaddr_storage raddr; // Large enough for both IPv4 or IPv6
                     socklen_t socklen = sizeof(raddr);
-                    int len = recvfrom(sock, recvbuf, sizeof(recvbuf)-1, 0,
+                    int len = recvfrom(sock, recvbuf, sizeof(recvbuf), 0,
                                        (struct sockaddr *)&raddr, &socklen);
                     if (len < 0) {
                         ESP_LOGE(TAG_BC,"multicast recvfrom failed: errno %d\n", errno);

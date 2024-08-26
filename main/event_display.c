@@ -5,7 +5,10 @@
 static const char* EVENT_TAG = "event";
 
 struct event* find_next_showing_event(struct mcu_data* data) {
-    for (int i = 0; i < 5; i++) {
+    for (int i = data->events_cnt - 1; 
+         i >= data->events_cnt - 5 && i >= 0; 
+         i--) {
+            
         if(data->events[i].displayed_since == 0) {
             return &data->events[i];
         }
