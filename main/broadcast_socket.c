@@ -18,180 +18,24 @@ char* TAG_BC = "broadcast";
 
 bool first_message = true;
 
-void handle_stint(struct mcu_data* data, char* saveptr) {
-    bool enabled = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
-    bool running = strcmp(strtok_r(NULL, ";", &saveptr), "true") == 0;
-    long target = atol(strtok_r(NULL, ";", &saveptr));
-    long elapsed = atol(strtok_r(NULL, ";", &saveptr));
-    data->stint.enabled = enabled;
-    data->stint.running = running;
-    data->stint.elapsed = elapsed;
-    data->stint.target = target;
-}
-
-void handle_lapno(struct mcu_data* data, char* saveptr) {
-    int lap_no = atoi(strtok_r(NULL, ";", &saveptr));
-    data->lap_data.lap_no = lap_no;
-}
-
-void handle_lap(struct mcu_data* data, char* saveptr) {
-    long lapno = atol(strtok_r(NULL, ";", &saveptr));
-    long laptime = atol(strtok_r(NULL, ";", &saveptr));
-    
-    switch (lapno) {
-        case 0: 
-            data->lap_data.current_lap = laptime;
-        break;
-        case -1: 
-            data->lap_data.best_lap = laptime;
-        break;
-        default: 
-            data->lap_data.last_laps[lapno-1].lap_no = lapno;
-            data->lap_data.last_laps[lapno-1].lap_time_ms = laptime;
-        break;
-    }
-}
-
-void handle_temp_pres(char* saveptr, struct car_sensor* sensor) {
-    long temp = atol(strtok_r(NULL, ";", &saveptr));
-    double pres = atof(strtok_r(NULL, ";", &saveptr));
-    sensor->preassure = pres;
-    sensor->temp = temp;
-}
-
-struct event* find_old_entry(struct event* old_events, int id) {
-    for (int i = 0; i < 5; i++) {
-        if (old_events[i].id == id) {
-            return &old_events[i];
-        }
-    }
-    return NULL;
-}
-
-void handle_events(char* saveptr, struct mcu_data* data) {
-    // copy for state transition afterwards
-    struct event old_events[5];
-    memset(old_events, 0, sizeof(old_events));
-    memcpy(old_events, data->events, sizeof(data->events));
-
-    int idx = atoi(strtok_r(NULL, ";", &saveptr));
-    char* id_str = strtok_r(NULL, ";", &saveptr);
-    int id = atoi(id_str);
-    char* type = strtok_r(NULL, ";", &saveptr);
-    
-    data->events[idx].id = id;
-   
-    // upon connect, don't display all old messages. nobody cares
-    struct event* old_data = find_old_entry(old_events, id);
-    data->events[idx].created_at = old_data != NULL ? old_data->created_at : esp_timer_get_time();
-    data->events[idx].displayed_since = old_data != NULL ? old_data->displayed_since : (first_message ? 1 : 0);
-  
-    if (strcmp(type, "STL") == 0) {
-        // ignore last timestamp    
-        data->events[idx].type = TIME_REMAIN;
-        data->events[idx].severity = WARN;
-        struct time_str ll = convert_millis_to_time(data->stint.target - data->stint.elapsed);
-        if (ll.minutes != 0) {
-            sprintf(data->events[idx].text, "%d min\nLEFT", ll.minutes);
-        } else {
-            sprintf(data->events[idx].text, "%d sec\nLEFT", ll.seconds);
-        }
-    } else if (strcmp(type, "Lap") == 0) {
-        int lap_number = atoi(strtok_r(NULL, ";", &saveptr));
-        int lap_time_ms = atol(strtok_r(NULL, ";", &saveptr));
-        int lap_diff_ms = atol(strtok_r(NULL, ";", &saveptr));
-        
-        data->events[idx].type = LAP;
-        data->events[idx].severity = ((lap_diff_ms < 0) ? POSITIVE : CRIT);
-
-        struct time_str ll = convert_millis_to_time(lap_time_ms);
-        struct time_str ll_diff = convert_millis_to_time(lap_diff_ms);
-
-        sprintf(data->events[idx].text, 
-                    "Lap %d\n%1d:%02d.%02d\n%s%1d.%02d", 
-                    lap_number,
-                    ll.minutes, ll.seconds, ll.milliseconds/10,
-                    (lap_diff_ms < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
-    } else if (strcmp(type, "State") == 0) {
-        char* target = strtok_r(NULL, ";", &saveptr);
-        char* state = strtok_r(NULL, ";", &saveptr);
-        data->events[idx].type = STATE_CHANGE;
-        data->events[idx].severity = NORMAL;
-        sprintf(data->events[idx].text, "%s\n%s", target, state);
-    }
-}
-
-void handle_comms(char* saveptr, struct mcu_data* data) {
-    int idx = atoi(strtok_r(NULL, ";", &saveptr));
-    enum command_type type = atoi(strtok_r(NULL, ";", &saveptr));
-    long created_at = atol(strtok_r(NULL, ";", &saveptr));
-    long handled_at = atol(strtok_r(NULL, ";", &saveptr));
-
-    data->incoming_commands[idx].type = type;
-    data->incoming_commands[idx].created = created_at;
-    data->incoming_commands[idx].handled = handled_at;
-}
-
-void handle_status(struct mcu_data* data, char* saveptr) {
-    long timestamp_since_power_up = atol(strtok_r(NULL, ";", &saveptr));
-    data->network_time_adjustment = (esp_timer_get_time() / 1000) - timestamp_since_power_up;
-} 
-
 void print_data(struct mcu_data* data) {
+    ESP_LOGI(TAG_BC, "Time Adjust: [%ld]", data->network_time_adjustment);
     ESP_LOGI(TAG_BC, "LapNo [%d], Best [%ld], Current [%ld]", data->lap_data.lap_no, data->lap_data.best_lap, data->lap_data.current_lap);
     for (int i = 0; i < 5; i++) {
         ESP_LOGI(TAG_BC, "[%d] LapNo [%d], Time [%"PRId64"]", i, data->lap_data.last_laps[i].lap_no, data->lap_data.last_laps[i].lap_time_ms);
     }
+
+    ESP_LOGI(TAG_BC, "incoming command cnt: [%d]", data->incoming_commands_last_idx);
+    for (int i = 0; i < 5; i++) {
+        ESP_LOGI(TAG_BC, "Type [%d] Created [%"PRId64"], Handled [%"PRId64"]", data->incoming_commands[i].type, data->incoming_commands[i].created, data->incoming_commands[i].handled);
+    }
+    
 }
 
 void parse_binary(char* message) {
     memcpy(get_data(), message, sizeof(struct mcu_data));
-    print_data(get_data());
-}
-
-void parse_message(char* message) {
-    long start = esp_timer_get_time();
-
-    struct mcu_data* data = get_data();
-
-    char *token, *subtoken;
-    char *saveptr1, *saveptr2;
-
-    data->lap_data.current_lap = -1;
-
-    for (token = strtok_r(message, "|", &saveptr1);
-         token != NULL;
-         token = strtok_r(NULL, "|", &saveptr1)) {   
-                
-        subtoken = strtok_r(token, ";", &saveptr2);
-         if(strcmp(subtoken, "STATUS") == 0) {
-            handle_status(data, saveptr2);
-        } if(strcmp(subtoken, "STNT") == 0) {
-            handle_stint(data, saveptr2);
-        } else if (strcmp(subtoken, "LAP") == 0) {
-            handle_lap(data, saveptr2);
-        } else if (strcmp(subtoken, "LAP-NO") == 0) {
-            handle_lapno(data, saveptr2); 
-        } else if (strcmp(subtoken, "WATER") == 0) {
-            handle_temp_pres(saveptr2, &data->water);
-        } else if (strcmp(subtoken, "OIL") == 0) {
-            handle_temp_pres(saveptr2,  &data->oil);
-        } else if (strcmp(subtoken, "GAS") == 0) {
-            handle_temp_pres(saveptr2, &data->gas);
-        } else if (strcmp(subtoken, "OIL_WARN") == 0) {
-            handle_temp_pres(saveptr2, get_oil_warn());
-        } else if (strcmp(subtoken, "WATER_WARN") == 0) {
-            handle_temp_pres(saveptr2, get_water_warn());
-        } else if (strcmp(subtoken, "EVT") == 0) {
-            handle_events(saveptr2, data);
-        } else if (strcmp(subtoken, "COM") == 0) {
-            handle_comms(saveptr2, data);
-        }
-    }
-
-    long end = esp_timer_get_time() - start;
-    first_message = false;
-    ESP_LOGI(TAG_BC, "finished parsing in %ld", end);
+    get_data()->network_time_adjustment = esp_timer_get_time() / 1000 - get_data()->network_time_adjustment;
+    //print_data(get_data());
 }
 
 /* Add a socket to the IPV4 multicast group */

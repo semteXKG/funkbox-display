@@ -505,6 +505,7 @@ void lvgl_set_last_laps_main(struct lap_data lap_data) {
 
 long stint_timer_checksum = -1L;
 void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed) {
+    
     long checksum = enabled + running + target/500 + elapsed/500;
     if (checksum == stint_timer_checksum) {
         return;
@@ -526,7 +527,8 @@ void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed)
     long time_rem = round((double)(target - elapsed));
     bool is_neg = false;
     double elapsed_percent = target == 0 ? 0 : (double)((double)elapsed / target);
-    //ESP_LOGI(TAG_MAIN, "%ld", elapsed);
+    
+    ESP_LOGI(TAG_MAIN, "target [%ld], elapsed [%ld], rem [%ld]", target, elapsed, time_rem);
 
     if(elapsed_percent <= 0.5) {
         draw_as_normal(stint_rem_obj, remaining_time);
@@ -597,7 +599,7 @@ char* type_to_string(enum command_type type) {
     }
 }
 
-
+int i = 0; 
 long last_comms_checksum = -1;
 void lvgl_set_last_comms(long timestamp_adjustment, struct command* commands) {
     struct command* newest = NULL;
@@ -609,12 +611,19 @@ void lvgl_set_last_comms(long timestamp_adjustment, struct command* commands) {
     if(newest == NULL) {
         return;
     }
+    
+    long time_since_in_ms = esp_timer_get_time()/1000 - newest->created - timestamp_adjustment;
+    struct time_str time_since = convert_millis_to_time(time_since_in_ms);
 
-    struct time_str time_since = convert_millis_to_time(esp_timer_get_time()/1000 - newest->created - timestamp_adjustment);
+    if (i++%100 == 0) {
+        ESP_LOGI(TAG_MAIN, "message since in ms: [%ld], min [%d]", time_since_in_ms, time_since.minutes);
+    }
+
     long checksum = time_since.minutes + newest->created;
     if(checksum == last_comms_checksum) {
         return;
     }
+
     last_comms_checksum = checksum;
     lv_label_set_text(radio_last_message, type_to_string(newest->type));
     lv_label_set_text_fmt(radio_last_message_time_ago, "%d m ago", time_since.minutes);
