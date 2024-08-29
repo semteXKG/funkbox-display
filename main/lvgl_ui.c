@@ -528,7 +528,7 @@ void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed)
     bool is_neg = false;
     double elapsed_percent = target == 0 ? 0 : (double)((double)elapsed / target);
     
-    ESP_LOGI(TAG_MAIN, "target [%ld], elapsed [%ld], rem [%ld]", target, elapsed, time_rem);
+    //ESP_LOGI(TAG_MAIN, "target [%ld], elapsed [%ld], rem [%ld]", target, elapsed, time_rem);
 
     if(elapsed_percent <= 0.5) {
         draw_as_normal(stint_rem_obj, remaining_time);
@@ -563,7 +563,7 @@ void lvgl_set_temperatures(struct mcu_data data) {
         sprintf(temp, "%0.1f", data.oil.preassure);
         lv_label_set_text(oil_pres_message, temp);    
      
-        if(get_oil_warn()->preassure > data.oil.preassure || get_oil_warn()->temp < data.oil.temp) {
+        if(get_oil_warn().preassure > data.oil.preassure || get_oil_warn().temp < data.oil.temp) {
             draw_as_critical(oil_obj, oil_temp_message);
             draw_as_critical(oil_obj, oil_pres_message);
         } else {
@@ -576,7 +576,7 @@ void lvgl_set_temperatures(struct mcu_data data) {
     if(prev_water_checksum != data.water.temp) {
         prev_water_checksum = data.water.temp;
         lv_label_set_text_fmt(h2o_temp_message, "%d", data.water.temp);
-        if (get_water_warn()->temp <  data.water.temp) {
+        if (get_water_warn().temp <  data.water.temp) {
             draw_as_critical(h2o_obj, h2o_temp_message);
         } else {
             draw_as_normal(h2o_obj, h2o_temp_message);
@@ -592,9 +592,9 @@ void lvgl_set_temperatures(struct mcu_data data) {
 
 char* type_to_string(enum command_type type) {
     switch (type) {
-        case PIT: return "PIT";
-        case STINT_OVER: return "STINT";
-        case TBD: return "TBD";
+        case COM_PIT: return "PIT";
+        case COM_STINT_OVER: return "STINT";
+        case COM_TBD: return "TBD";
         default: return "";
     }
 }
@@ -616,7 +616,7 @@ void lvgl_set_last_comms(long timestamp_adjustment, struct command* commands) {
     struct time_str time_since = convert_millis_to_time(time_since_in_ms);
 
     if (i++%100 == 0) {
-        ESP_LOGI(TAG_MAIN, "message since in ms: [%ld], min [%d]", time_since_in_ms, time_since.minutes);
+        //ESP_LOGI(TAG_MAIN, "message since in ms: [%ld], min [%d]", time_since_in_ms, time_since.minutes);
     }
 
     long checksum = time_since.minutes + newest->created;

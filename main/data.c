@@ -3,19 +3,38 @@
 #include <memory.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
+#include <esp_log.h>
 
-struct mcu_data* backing_data;
-struct car_sensor* backing_oil_warn;
-struct car_sensor* backing_water_warn;
+struct mcu_data primary_slot;
+struct mcu_data secondary_slot;
+
+struct mcu_data* active = &primary_slot;
+
+struct car_sensor oil_warn;
+struct car_sensor water_warn;
 
 struct mcu_data* get_data() {
-    return backing_data;
+    return active;
 }
-struct car_sensor* get_oil_warn() {
-    return backing_oil_warn;
+
+struct car_sensor get_oil_warn() {
+    return oil_warn;
 }
-struct car_sensor* get_water_warn() {
-    return backing_water_warn;
+struct car_sensor get_water_warn() {
+    return water_warn;
+}
+
+struct mcu_data* get_inactive_data() {
+    if (active == &primary_slot) {
+        return &secondary_slot;
+    } else {
+        return &primary_slot;
+    }
+}
+
+void data_switch_active() {
+    ESP_LOGI("DATA", "switching data");
+    active = get_inactive_data();
 }
 
 void update_timestamps(TimerHandle_t xTimer ) {
@@ -29,19 +48,23 @@ void update_timestamps(TimerHandle_t xTimer ) {
     }
 }
 
-void data_start() {
-    backing_data = (struct mcu_data*) malloc(sizeof(struct mcu_data));
-    memset(backing_data, 0, sizeof(struct mcu_data));
-    backing_oil_warn = (struct car_sensor*) malloc(sizeof(struct car_sensor));
-    memset(backing_oil_warn, 0, sizeof(struct car_sensor));
-    backing_water_warn = (struct car_sensor*) malloc(sizeof(struct car_sensor));
-    memset(backing_water_warn, 0, sizeof(struct car_sensor));
+void init_data_structures(struct mcu_data* data) {
+    memset(data, 0, sizeof(struct mcu_data));
     
-    backing_data->lap_data.current_lap = -1;
+    data->lap_data.current_lap = -1;
     for (int i = 0; i < 5; i++) {
-        backing_data->events[i].displayed_since = 1;
-        backing_data->incoming_commands[i].handled = 1;
+        data->events[i].displayed_since = 1;
+        data->incoming_commands[i].handled = 1;
     }
+
+}
+
+void data_start() {
+    memset(&oil_warn, 0, sizeof(struct car_sensor));
+    memset(&water_warn, 0, sizeof(struct car_sensor));
+
+    init_data_structures(&primary_slot);
+    init_data_structures(&secondary_slot);
 
     TimerHandle_t timer = xTimerCreate("millisecondAdvancer",
                     pdMS_TO_TICKS(3),

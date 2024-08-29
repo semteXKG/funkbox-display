@@ -9,8 +9,8 @@ struct event* find_next_showing_event(struct mcu_data* data) {
          i >= data->events_cnt - 5 && i >= 0; 
          i--) {
             
-        if(data->events[i].displayed_since == 0) {
-            return &data->events[i];
+        if(data->events[i%5].displayed_since == 0) {
+            return &data->events[i%5];
         }
     }
     return NULL;

@@ -21,6 +21,12 @@
         "event_display.h": "c",
         "lvgl_ui.h": "c",
         "ui_commons.h": "c",
-        "random": "c"
+        "random": "c",
+        "charconv": "c",
+        "functional": "c",
+        "ratio": "c",
+        "tuple": "c",
+        "utility": "c",
+        "variant": "c"
     }
 }

@@ -11,7 +11,7 @@
 
 #define MULTICAST_TTL 1
 #define MULTICAST_IPV4_ADDR "232.10.11.12"
-
+#define HEADER_LENGTH 2
 int sock;
 
 char* TAG_BC = "broadcast";
@@ -30,12 +30,77 @@ void print_data(struct mcu_data* data) {
         ESP_LOGI(TAG_BC, "Type [%d] Created [%"PRId64"], Handled [%"PRId64"]", data->incoming_commands[i].type, data->incoming_commands[i].created, data->incoming_commands[i].handled);
     }
     
+    ESP_LOGI(TAG_BC, "incoming command cnt: [%d]", data->incoming_commands_last_idx);
+    for (int i = 0; i < 5; i++) {
+      ESP_LOGI(TAG_BC, "Type [%d] Created [%"PRId64"], Handled [%"PRId64"]", data->incoming_commands[i].type, data->incoming_commands[i].created, data->incoming_commands[i].handled);
+    }
+
+    ESP_LOGI(TAG_BC, "outgoing command cnt: [%d]", data->outgoing_commands_last_idx);
+    for (int i = 0; i < 5; i++) {
+      ESP_LOGI(TAG_BC, "Type [%d] Created [%"PRId64"], Handled [%"PRId64"]", data->outgoing_commands[i].type, data->outgoing_commands[i].created, data->outgoing_commands[i].handled);
+    }
+
+    ESP_LOGI(TAG_BC, "events cnt: [%d]", data->events_cnt);
+    for (int i = 0; i < 5; i++) {
+      ESP_LOGI(TAG_BC, "[%d] Type [%d] Created [%"PRId64"] Displayed_Since [%"PRId64"]", i, data->events[i].type, data->events[i].created_at, data->events[i].displayed_since);
+    }
 }
 
+struct event* find_old_entry(struct event* old_events, int id) {
+    for (int i = 0; i < 5; i++) {
+        if (old_events[i].id == id) {
+            return &old_events[i];
+        }
+    }
+    return NULL;
+}
+
+void transfer_event_data(struct mcu_data* old, struct mcu_data* new) {
+    for (int i = 0; i < 5; i++) {
+        struct event* old_data = find_old_entry(old->events, new->events[i].id);
+        new->events[i].displayed_since = old_data != NULL ? old_data->displayed_since : (first_message ? 1 : 0);        
+    
+        if (new->events[i].type ==  EVT_TIME_REMAIN) {
+            // ignore last timestamp    
+            struct time_str ll = convert_millis_to_time(new->stint.target - new->stint.elapsed);
+            if (ll.minutes != 0) {
+                sprintf(new->events[i].text, "%d min\nLEFT", ll.minutes);
+            } else {
+                sprintf(new->events[i].text, "%d sec\nLEFT", ll.seconds);
+            }
+        } else if (new->events[i].type ==  EVT_LAP) {
+            int lap_number = atoi(strtok(new->events[i].text, ";"));
+            int lap_time_ms = atol(strtok(NULL, ";"));
+            int lap_diff_ms = atol(strtok(NULL, ";"));
+
+            new->events[i].severity = ((lap_diff_ms < 0) ? POSITIVE : CRIT);
+
+            struct time_str ll = convert_millis_to_time(lap_time_ms);
+            struct time_str ll_diff = convert_millis_to_time(lap_diff_ms);
+
+            sprintf(new->events[i].text, 
+                        "Lap %d\n%1d:%02d.%02d\n%s%1d.%02d", 
+                        lap_number,
+                        ll.minutes, ll.seconds, ll.milliseconds/10,
+                        (lap_diff_ms < 0 ? "-":"+"), ll_diff.seconds + (ll_diff.minutes * 60), ll_diff.milliseconds/10);
+        } else if (new->events[i].type == EVT_STATE_CHANGE) {
+            char* target = strtok(new->events[i].text,";");
+            char* state = strtok(NULL, ";");
+            new->events[i].severity = NORMAL;
+            sprintf(new->events[i].text, "%s\n%s", target, state);
+        }
+    }
+}
+
+
 void parse_binary(char* message) {
-    memcpy(get_data(), message, sizeof(struct mcu_data));
-    get_data()->network_time_adjustment = esp_timer_get_time() / 1000 - get_data()->network_time_adjustment;
-    //print_data(get_data());
+    memcpy(get_inactive_data(), message, sizeof(struct mcu_data));
+    transfer_event_data(get_data(), get_inactive_data());
+    get_inactive_data()->network_time_adjustment = esp_timer_get_time() / 1000 - get_inactive_data()->network_time_adjustment;
+    
+    //print_data(get_inactive_data());
+    data_switch_active();
+    first_message = false;
 }
 
 /* Add a socket to the IPV4 multicast group */
@@ -181,7 +246,7 @@ void listen_broadcast(void *pvParameters)
             } else if (s > 0) {
                 if (FD_ISSET(sock, &rfds)) {
                     // Incoming daTAG_BCram received
-                    char recvbuf[sizeof(struct mcu_data)];
+                    char recvbuf[sizeof(struct mcu_data)+HEADER_LENGTH];
                     char raddr_name[32] = { 0 };
                     struct sockaddr_storage raddr; // Large enough for both IPv4 or IPv6
                     socklen_t socklen = sizeof(raddr);
@@ -198,7 +263,11 @@ void listen_broadcast(void *pvParameters)
                                     raddr_name, sizeof(raddr_name)-1);
                     }
                     ESP_LOGI(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
-                    parse_binary(recvbuf);
+                    if(recvbuf[0] == 'S' && recvbuf[1] == 'T') {
+                        parse_binary(recvbuf+2);
+                    } else {
+                        ESP_LOGI(TAG_BC, "Skipping unknown header");
+                    }
                     ESP_LOGI(TAG_BC,"Done");
                 }
             }

@@ -12,9 +12,10 @@ enum severity {
 };
 
 enum event_type {
-    LAP,
-    TIME_REMAIN,
-    STATE_CHANGE
+    EVT_NONE,
+    EVT_LAP,
+    EVT_TIME_REMAIN,
+    EVT_STATE_CHANGE
 };
 
 struct  event {
@@ -27,9 +28,10 @@ struct  event {
 };
 
 enum command_type {
-    PIT,
-    STINT_OVER,
-    TBD
+    COM_NONE,
+    COM_PIT,
+    COM_STINT_OVER,
+    COM_TBD
 };
 
 struct command {
@@ -85,8 +87,11 @@ struct time_str {
 };
 
 struct mcu_data* get_data();
-struct car_sensor* get_oil_warn();
-struct car_sensor* get_water_warn();
+struct mcu_data* get_inactive_data();
+void data_switch_active();
+
+struct car_sensor get_oil_warn();
+struct car_sensor get_water_warn();
 
 void data_start();
 
