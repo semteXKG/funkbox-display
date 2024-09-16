@@ -27,6 +27,7 @@
         "ratio": "c",
         "tuple": "c",
         "utility": "c",
-        "variant": "c"
+        "variant": "c",
+        "protobuf-c.h": "c"
     }
 }
