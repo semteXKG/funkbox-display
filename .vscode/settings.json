@@ -1,6 +1,6 @@
 {
     "idf.adapterTargetName": "esp32s3",
-    "idf.portWin": "COM8",
+    "idf.portWin": "COM6",
     "idf.flashType": "UART",
     "files.associations": {
         "i2c.h": "c",
@@ -28,6 +28,9 @@
         "tuple": "c",
         "utility": "c",
         "variant": "c",
-        "protobuf-c.h": "c"
+        "protobuf-c.h": "c",
+        "command_display.h": "c",
+        "semaphore.h": "c",
+        "semphr.h": "c"
     }
 }

@@ -1,16 +1,25 @@
 #include <event_display.h>
 
 #define DISPLAY_TIME_IN_US 3000000
+#define ALREADY_SHOWN_NUM 10
 
 static const char* EVENT_TAG = "event";
 
-struct event* find_next_showing_event(struct mcu_data* data) {
-    for (int i = data->events_cnt - 1; 
-         i >= data->events_cnt - 5 && i >= 0; 
-         i--) {
-            
-        if(data->events[i%5].displayed_since == 0) {
-            return &data->events[i%5];
+int already_shown[ALREADY_SHOWN_NUM];
+int already_shown_cnt = 0;
+
+ProtoEvent* find_next_showing_event(ProtoMcuData* data) {
+    for (int i = 0; i < data->n_events; i++) {
+        bool found = false;
+        for (int j = 0; j < ALREADY_SHOWN_NUM; j++) {
+            if (data->events[i]->id == already_shown[j]) {
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            return data->events[i];
         }
     }
     return NULL;
@@ -18,7 +27,7 @@ struct event* find_next_showing_event(struct mcu_data* data) {
 
 int current_event_idx = 0;
 int64_t current_event_showing_since = 0;
-void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
+void lvgl_set_events(ProtoMcuData* data, lv_obj_t* object, lv_obj_t* label) {
     if (current_event_showing_since != 0) {
         if (esp_timer_get_time() - current_event_showing_since < DISPLAY_TIME_IN_US) {
             return;
@@ -30,25 +39,27 @@ void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label) {
         lv_obj_move_background(object);
     }
    
-    struct event* non_disp_event = find_next_showing_event(data);
+    ProtoEvent* non_disp_event = find_next_showing_event(data);
     if(non_disp_event != NULL) {
-        ESP_LOGI(EVENT_TAG, "found event with id for display: %d", non_disp_event->id);
+        ESP_LOGI(EVENT_TAG, "found event with id for display: %"PRId32, non_disp_event->id);
         switch (non_disp_event->severity) {
-            case POSITIVE:
+            case PROTO__SEVERITY__POSITIVE:
                 lv_obj_set_style_bg_color(object, lv_color_ok(), LV_PART_MAIN);
                 lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
             break;
-            case NORMAL:
+            case PROTO__SEVERITY__NORMAL:
                 lv_obj_set_style_bg_color(object, lv_cont_bg(), LV_PART_MAIN);
                 lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
             break;
-            case WARN:
+            case PROTO__SEVERITY__WARN:
                lv_obj_set_style_bg_color(object, lv_color_warn(), LV_PART_MAIN);
                lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
             break;
-            case CRIT:
+            case PROTO__SEVERITY__CRIT:
                 lv_obj_set_style_bg_color(object, lv_color_crit(), LV_PART_MAIN);
                 lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
+            break;
+            default: 
             break;
         }
 

@@ -1,84 +1,10 @@
 #pragma once
 #include "stdbool.h"
 #include "inttypes.h"
-
+#include "proto/message.pb-c.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #define MAX_LAPS 5
-
-enum severity {
-    POSITIVE,
-    NORMAL,
-    WARN,
-    CRIT
-};
-
-enum event_type {
-    EVT_NONE,
-    EVT_LAP,
-    EVT_TIME_REMAIN,
-    EVT_STATE_CHANGE
-};
-
-struct  event {
-    int id;
-    enum event_type type;
-    enum severity severity;
-    int64_t created_at;
-    int64_t displayed_since;
-    char text[100];
-};
-
-enum command_type {
-    COM_NONE,
-    COM_PIT,
-    COM_STINT_OVER,
-    COM_TBD
-};
-
-struct command {
-    enum command_type type;
-    int64_t created;
-    int64_t handled;
-};
-
-struct car_sensor {
-    int temp;
-    double preassure;
-};
-
-struct stint_data {
-    bool running;
-    bool enabled;
-    int64_t target;
-    int64_t elapsed;
-};
-
-struct lap
-{
-    int lap_no;
-    int64_t lap_time_ms;
-};
-
-struct lap_data {
-    int lap_no;
-    long best_lap;
-    long current_lap;
-    struct lap last_laps[5];
-};
-
-struct mcu_data {
-    long network_time_adjustment;
-    struct car_sensor water;
-    struct car_sensor oil;
-    struct car_sensor gas;
-    struct stint_data stint;
-    struct lap_data lap_data;  
-    struct event events[5];
-    int events_cnt;
-    struct command outgoing_commands[5];
-    int outgoing_commands_last_idx;
-    struct command incoming_commands[5];
-    int incoming_commands_last_idx;
-};
 
 struct time_str {
     int milliseconds;
@@ -86,12 +12,13 @@ struct time_str {
     int minutes;
 };
 
-struct mcu_data* get_data();
-struct mcu_data* get_inactive_data();
-void data_switch_active();
 
-struct car_sensor get_oil_warn();
-struct car_sensor get_water_warn();
+ProtoCarSensor get_oil_warn();
+ProtoCarSensor get_water_warn();
+SemaphoreHandle_t get_mutex();
+
+ProtoMcuData* get_data();
+void set_data(ProtoMcuData* proto_data);
 
 void data_start();
 

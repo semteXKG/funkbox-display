@@ -5,7 +5,8 @@
 #include "math.h"
 #include "esp_timer.h"
 #include "ui_commons.h"
+#include "proto/message.pb-c.h"
 
 #pragma once
 
-void lvgl_set_events(struct mcu_data* data, lv_obj_t* object, lv_obj_t* label);
+void lvgl_set_events(ProtoMcuData* data, lv_obj_t* object, lv_obj_t* label);

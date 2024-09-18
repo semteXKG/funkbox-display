@@ -418,25 +418,26 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
 }
 
 long last_lap_checksum = -1L;
-void lvgl_set_last_laps(struct lap_data lap_data) {
-    if(lap_data.lap_no == 1) {
+void lvgl_set_last_laps(ProtoLapData* data) {
+    
+    if(data->lap_no == 1) {
         return;
     }  
 
-    long checksum = lap_data.best_lap + lap_data.last_laps[(lap_data.lap_no-2)%MAX_LAPS].lap_time_ms;
+    long checksum = data->best_lap + data->laps[0]->lap_time_ms;
     if(checksum == last_lap_checksum) {
         return;
     }
     last_lap_checksum = checksum;
 
-    struct time_str pb = convert_millis_to_time(lap_data.best_lap);
+    struct time_str pb = convert_millis_to_time(data->best_lap);
     lv_label_set_text_fmt(pb_time, "%1d:%02d.%02d", pb.minutes, pb.seconds, pb.milliseconds/10);
     
-    struct time_str ll = convert_millis_to_time(lap_data.last_laps[(lap_data.lap_no-2)%MAX_LAPS].lap_time_ms);
+    struct time_str ll = convert_millis_to_time(data->laps[0]->lap_time_ms);
     lv_label_set_text_fmt(ll_time, "%1d:%02d.%02d", ll.minutes, ll.seconds, ll.milliseconds/10);
-
-    if(lap_data.lap_no > 1) {
-        long diff = lap_data.last_laps[(lap_data.lap_no-2)%MAX_LAPS].lap_time_ms - lap_data.last_laps[(lap_data.lap_no-3)%MAX_LAPS].lap_time_ms;
+ 
+    if(data->lap_no > 1) {
+        long diff = data->laps[0]->lap_time_ms - data->laps[1]->lap_time_ms;
         struct time_str ll_diff = convert_millis_to_time(diff);
 
         lv_obj_set_style_text_color(ll_time_diff, (diff > 0 ? lv_color_crit() : lv_color_ok()), LV_PART_MAIN);
@@ -447,30 +448,28 @@ void lvgl_set_last_laps(struct lap_data lap_data) {
 
 bool previously_running = false;
 long checksums[4] = {-1};
-void lvgl_set_last_laps_main(struct lap_data lap_data) {    
-    if(lap_data.current_lap != -1) {
-        struct time_str time = convert_millis_to_time(lap_data.current_lap);
+void lvgl_set_last_laps_main(ProtoLapData* lap_data) {    
+    if(lap_data->has_current_lap) {
+        struct time_str time = convert_millis_to_time(lap_data->current_lap);
         lv_label_set_text_fmt(lap_time_labels[0], "%d:%02d.%02d", time.minutes, time.seconds, time.milliseconds / 10);
         
-        if(previously_running != (lap_data.current_lap != -1)) {
+        if(previously_running != lap_data->has_current_lap) {
             lv_label_set_text(lap_number_labels[0], "Lap");
         }
     } else if (previously_running) {
         lv_label_set_text(lap_time_labels[0], "OFF");
         lv_label_set_text(lap_number_labels[0], "");
     }
-    previously_running = lap_data.current_lap != -1;
+    previously_running = lap_data->has_current_lap;
     int control_index = 0;
-    for (int i = lap_data.lap_no - 2; 
-         i >= lap_data.lap_no - 5 && i >= 0; 
-         i--) {
-        
+    size_t no_of_elements = lap_data->n_laps;
+    for (int i = 0; i < no_of_elements; i ++) {
         control_index++;
         
         
-        int64_t time_in_ms = lap_data.last_laps[i%MAX_LAPS].lap_time_ms;
-        int64_t diff_in_ms = time_in_ms - lap_data.last_laps[(i > 0 ? i - 1 : 0)%MAX_LAPS].lap_time_ms;
-        int lapNo = lap_data.last_laps[i%MAX_LAPS].lap_no;
+        int64_t time_in_ms = lap_data->laps[i]->lap_time_ms;
+        int64_t diff_in_ms = time_in_ms - lap_data->laps[(no_of_elements == 0 ? 0 : i + 1)]->lap_time_ms;
+        int lapNo = lap_data->laps[i]->lap_no;
         
         //ESP_LOGI(TAG_MAIN, "Current Array Index [%d], Mod Index [%d] Control Index [%d]", i, i%MAX_LAPS, control_index);
         //ESP_LOGI(TAG_MAIN, "Time [%"PRId64"], diff [%"PRId64"], lapNo [%d]", time_in_ms, diff_in_ms, lapNo);
@@ -554,16 +553,19 @@ void lvgl_set_stint_timer(bool enabled, bool running, long target, long elapsed)
 double prev_oil_checksum = -1;
 double prev_water_checksum = -1;
 double prev_gas_checksum = -1;
-void lvgl_set_temperatures(struct mcu_data data) {
+void lvgl_set_temperatures(ProtoMcuData* data) {
     char temp[10];
-    double checksum = data.oil.temp + data.oil.preassure;
+    if (data->oil == NULL || data->water == NULL || data->gas == NULL) {
+        return;
+    }
+    double checksum = data->oil->temp + data->oil->preassure;
     if(checksum != prev_oil_checksum) {
         prev_oil_checksum = checksum;
-        lv_label_set_text_fmt(oil_temp_message, "%d", data.oil.temp);
-        sprintf(temp, "%0.1f", data.oil.preassure);
+        lv_label_set_text_fmt(oil_temp_message, "%"PRIu32, data->oil->temp);
+        sprintf(temp, "%0.1f", data->oil->preassure);
         lv_label_set_text(oil_pres_message, temp);    
      
-        if(get_oil_warn().preassure > data.oil.preassure || get_oil_warn().temp < data.oil.temp) {
+        if(get_oil_warn().preassure > data->oil->preassure || get_oil_warn().temp < data->oil->temp) {
             draw_as_critical(oil_obj, oil_temp_message);
             draw_as_critical(oil_obj, oil_pres_message);
         } else {
@@ -573,39 +575,39 @@ void lvgl_set_temperatures(struct mcu_data data) {
     
     }
     
-    if(prev_water_checksum != data.water.temp) {
-        prev_water_checksum = data.water.temp;
-        lv_label_set_text_fmt(h2o_temp_message, "%d", data.water.temp);
-        if (get_water_warn().temp <  data.water.temp) {
+    if(prev_water_checksum != data->water->temp) {
+        prev_water_checksum = data->water->temp;
+        lv_label_set_text_fmt(h2o_temp_message, "%"PRIu32, data->water->temp);
+        if (get_water_warn().temp <  data->water->temp) {
             draw_as_critical(h2o_obj, h2o_temp_message);
         } else {
             draw_as_normal(h2o_obj, h2o_temp_message);
         }
     }
     
-    if(prev_gas_checksum != data.gas.preassure) {
-        prev_gas_checksum = data.gas.preassure;
-        sprintf(temp, "%0.1f", data.gas.preassure);
+    if(prev_gas_checksum != data->gas->preassure) {
+        prev_gas_checksum = data->gas->preassure;
+        sprintf(temp, "%0.1f", data->gas->preassure);
         lv_label_set_text(gas_pres_message, temp);    
     }
 }
 
-char* type_to_string(enum command_type type) {
+char* type_to_string(ProtoCommandType type) {
     switch (type) {
-        case COM_PIT: return "PIT";
-        case COM_STINT_OVER: return "STINT";
-        case COM_TBD: return "TBD";
+        case PROTO__COMMAND__TYPE__COM_PIT: return "PIT";
+        case PROTO__COMMAND__TYPE__COM_STINT_OVER: return "STINT";
+        case PROTO__COMMAND__TYPE__COM_FCK: return "FUCK";
         default: return "";
     }
 }
 
 int i = 0; 
 long last_comms_checksum = -1;
-void lvgl_set_last_comms(long timestamp_adjustment, struct command* commands) {
-    struct command* newest = NULL;
-    for (int i = 0; i < 5; i++) {
-        if(commands[i].created > 0 && (newest == NULL || commands[i].created > newest->created)) {
-            newest = &commands[i];
+void lvgl_set_last_comms(long timestamp_adjustment, ProtoMcuData* data) {
+    ProtoCommand* newest = NULL;
+    for (int i = 0; i < data->n_incoming_commands; i++) {
+        if(data->incoming_commands[i]->created > 0 && (newest == NULL || data->incoming_commands[i]->created > newest->created)) {
+            newest = data->incoming_commands[i];
         }
     }
     if(newest == NULL) {
@@ -631,14 +633,20 @@ void lvgl_set_last_comms(long timestamp_adjustment, struct command* commands) {
 
 
 void lvgl_update_data() {
-    struct mcu_data* data = get_data();
-
-    lvgl_set_stint_timer(data->stint.enabled, data->stint.running, data->stint.target, data->stint.elapsed);
-    lvgl_set_last_laps(data->lap_data);
-    lvgl_set_last_laps_main(data->lap_data);
-    lvgl_set_last_comms(data->network_time_adjustment, data->incoming_commands);
-    lvgl_set_temperatures(*data);
-    if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
-        lvgl_set_events(data, main_events_obj, main_events_label);
+    if (xSemaphoreTake(get_mutex(), 0)) {
+        ProtoMcuData* data = get_data();
+        if(data == NULL) {
+           return;
+        }
+        lvgl_set_stint_timer(data->stint->enabled, data->stint->running, data->stint->target, data->stint->elapsed);
+        lvgl_set_last_laps(data->lap_data);
+        //lvgl_set_last_laps_main(data.lap_data);
+        //lvgl_set_last_comms(data.network_time_adjustment, &data);
+        lvgl_set_temperatures(data);
+        //if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
+        //    lvgl_set_events(data, main_events_obj, main_events_label);
+        //}
+        xSemaphoreGive(get_mutex());
     }
+ 
 }

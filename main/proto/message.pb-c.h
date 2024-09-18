@@ -15,77 +15,93 @@ PROTOBUF_C__BEGIN_DECLS
 #endif
 
 
-typedef struct _Event Event;
-typedef struct _Command Command;
-typedef struct _CarSensor CarSensor;
-typedef struct _StintData StintData;
-typedef struct _Lap Lap;
-typedef struct _LapData LapData;
-typedef struct _McuData McuData;
+typedef struct _ProtoEvent ProtoEvent;
+typedef struct _ProtoCommand ProtoCommand;
+typedef struct _ProtoCarSensor ProtoCarSensor;
+typedef struct _ProtoStintData ProtoStintData;
+typedef struct _ProtoLap ProtoLap;
+typedef struct _ProtoLapData ProtoLapData;
+typedef struct _ProtoMcuData ProtoMcuData;
+typedef struct _ProtoPayloadedMessage ProtoPayloadedMessage;
 
 
 /* --- enums --- */
 
-typedef enum _Severity {
-  SEVERITY__POSITIVE = 1,
-  SEVERITY__NORMAL = 2,
-  SEVERITY__WARN = 3,
-  SEVERITY__CRIT = 4
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(SEVERITY)
-} Severity;
-typedef enum _EventType {
-  EVENT_TYPE__EVT_NONE = 1,
-  EVENT_TYPE__EVT_LAP = 2,
-  EVENT_TYPE__EVT_TIME_REMAIN = 3,
-  EVENT_TYPE__EVT_STATE_CHANGE = 4
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(EVENT_TYPE)
-} EventType;
-typedef enum _CommandType {
-  COMMAND_TYPE__COM_NONE = 1,
-  COMMAND_TYPE__COM_PIT = 2,
-  COMMAND_TYPE__COM_STINT_OVER = 3,
-  COMMAND_TYPE__COM_TBD = 4
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(COMMAND_TYPE)
-} CommandType;
+/*
+ * https://github.com/protobuf-c/protobuf-c/wiki/Examples#strings
+ */
+typedef enum _ProtoSeverity {
+  PROTO__SEVERITY__POSITIVE = 1,
+  PROTO__SEVERITY__NORMAL = 2,
+  PROTO__SEVERITY__WARN = 3,
+  PROTO__SEVERITY__CRIT = 4
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(PROTO__SEVERITY)
+} ProtoSeverity;
+typedef enum _ProtoEventType {
+  PROTO__EVENT__TYPE__EVT_NONE = 1,
+  PROTO__EVENT__TYPE__EVT_LAP = 2,
+  PROTO__EVENT__TYPE__EVT_TIME_REMAIN = 3,
+  PROTO__EVENT__TYPE__EVT_STATE_CHANGE = 4
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(PROTO__EVENT__TYPE)
+} ProtoEventType;
+typedef enum _ProtoCommandType {
+  PROTO__COMMAND__TYPE__COM_NONE = 1,
+  PROTO__COMMAND__TYPE__COM_PIT = 2,
+  PROTO__COMMAND__TYPE__COM_STINT_OVER = 3,
+  PROTO__COMMAND__TYPE__COM_FCK = 4
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(PROTO__COMMAND__TYPE)
+} ProtoCommandType;
+typedef enum _ProtoLoraType {
+  PROTO__LORA__TYPE__LORA_ACK = 1,
+  PROTO__LORA__TYPE__LORA_OIL = 2,
+  PROTO__LORA__TYPE__LORA_WATER = 3,
+  PROTO__LORA__TYPE__LORA_GAS = 4,
+  PROTO__LORA__TYPE__LORA_LAP = 5,
+  PROTO__LORA__TYPE__LORA_STINT = 6,
+  PROTO__LORA__TYPE__LORA_COMMAND = 7
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(PROTO__LORA__TYPE)
+} ProtoLoraType;
 
 /* --- messages --- */
 
-struct  _Event
+struct  _ProtoEvent
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_id;
   int32_t id;
   protobuf_c_boolean has_type;
-  EventType type;
+  ProtoEventType type;
   protobuf_c_boolean has_severity;
-  Severity severity;
+  ProtoSeverity severity;
   protobuf_c_boolean has_created_at;
   int64_t created_at;
   protobuf_c_boolean has_displayed_since;
   int64_t displayed_since;
   char *text;
 };
-#define EVENT__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&event__descriptor) \
-    , 0, 0, 0, EVENT_TYPE__EVT_NONE, 0, SEVERITY__POSITIVE, 0, 0, 0, 0, NULL }
+#define PROTO__EVENT__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__event__descriptor) \
+    , 0, 0, 0, PROTO__EVENT__TYPE__EVT_NONE, 0, PROTO__SEVERITY__POSITIVE, 0, 0, 0, 0, NULL }
 
 
-struct  _Command
+struct  _ProtoCommand
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_type;
-  CommandType type;
+  ProtoCommandType type;
+  protobuf_c_boolean has_id;
+  int32_t id;
   protobuf_c_boolean has_created;
   int64_t created;
   protobuf_c_boolean has_handled;
   int64_t handled;
 };
-#define COMMAND__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&command__descriptor) \
-    , 0, COMMAND_TYPE__COM_NONE, 0, 0, 0, 0 }
+#define PROTO__COMMAND__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__command__descriptor) \
+    , 0, PROTO__COMMAND__TYPE__COM_NONE, 0, 0, 0, 0, 0, 0 }
 
 
-struct  _CarSensor
+struct  _ProtoCarSensor
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_temp;
@@ -93,12 +109,12 @@ struct  _CarSensor
   protobuf_c_boolean has_preassure;
   double preassure;
 };
-#define CAR_SENSOR__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&car_sensor__descriptor) \
+#define PROTO__CAR__SENSOR__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__car__sensor__descriptor) \
     , 0, 0, 0, 0 }
 
 
-struct  _StintData
+struct  _ProtoStintData
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_running;
@@ -110,12 +126,12 @@ struct  _StintData
   protobuf_c_boolean has_elapsed;
   int64_t elapsed;
 };
-#define STINT_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&stint_data__descriptor) \
+#define PROTO__STINT__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__stint__data__descriptor) \
     , 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
-struct  _Lap
+struct  _ProtoLap
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_lap_no;
@@ -123,12 +139,12 @@ struct  _Lap
   protobuf_c_boolean has_lap_time_ms;
   int64_t lap_time_ms;
 };
-#define LAP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&lap__descriptor) \
+#define PROTO__LAP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__lap__descriptor) \
     , 0, 0, 0, 0 }
 
 
-struct  _LapData
+struct  _ProtoLapData
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_lap_no;
@@ -138,194 +154,232 @@ struct  _LapData
   protobuf_c_boolean has_current_lap;
   uint32_t current_lap;
   size_t n_laps;
-  Lap **laps;
+  ProtoLap **laps;
 };
-#define LAP_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&lap_data__descriptor) \
+#define PROTO__LAP__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__lap__data__descriptor) \
     , 0, 0, 0, 0, 0, 0, 0,NULL }
 
 
-struct  _McuData
+struct  _ProtoMcuData
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_network_time_adjustment;
   int64_t network_time_adjustment;
-  CarSensor *water;
-  CarSensor *oil;
-  CarSensor *gas;
-  StintData *stint;
-  LapData *lap_data;
+  ProtoCarSensor *water;
+  ProtoCarSensor *oil;
+  ProtoCarSensor *gas;
+  ProtoStintData *stint;
+  ProtoLapData *lap_data;
   size_t n_events;
-  Event **events;
+  ProtoEvent **events;
   size_t n_outgoing_commands;
-  Command **outgoing_commands;
-  protobuf_c_boolean has_outgoing_commands_last_idx;
-  int64_t outgoing_commands_last_idx;
+  ProtoCommand **outgoing_commands;
   size_t n_incoming_commands;
-  Command **incoming_commands;
-  protobuf_c_boolean has_incoming_commands_last_idx;
-  int64_t incoming_commands_last_idx;
+  ProtoCommand **incoming_commands;
 };
-#define MCU_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&mcu_data__descriptor) \
-    , 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0, 0, 0,NULL, 0, 0 }
+#define PROTO__MCU__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__mcu__data__descriptor) \
+    , 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL }
 
 
-/* Event methods */
-void   event__init
-                     (Event         *message);
-size_t event__get_packed_size
-                     (const Event   *message);
-size_t event__pack
-                     (const Event   *message,
+struct  _ProtoPayloadedMessage
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_type;
+  ProtoLoraType type;
+  protobuf_c_boolean has_seq_nr;
+  uint32_t seq_nr;
+  ProtoCarSensor *water_sensor;
+  ProtoCarSensor *oil_sensor;
+  ProtoCarSensor *gas_sensor;
+  ProtoLapData *lap_data;
+  ProtoStintData *stint_data;
+  size_t n_acks;
+  uint32_t *acks;
+};
+#define PROTO__PAYLOADED__MESSAGE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__payloaded__message__descriptor) \
+    , 0, PROTO__LORA__TYPE__LORA_ACK, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL }
+
+
+/* ProtoEvent methods */
+void   proto__event__init
+                     (ProtoEvent         *message);
+size_t proto__event__get_packed_size
+                     (const ProtoEvent   *message);
+size_t proto__event__pack
+                     (const ProtoEvent   *message,
                       uint8_t             *out);
-size_t event__pack_to_buffer
-                     (const Event   *message,
+size_t proto__event__pack_to_buffer
+                     (const ProtoEvent   *message,
                       ProtobufCBuffer     *buffer);
-Event *
-       event__unpack
+ProtoEvent *
+       proto__event__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   event__free_unpacked
-                     (Event *message,
+void   proto__event__free_unpacked
+                     (ProtoEvent *message,
                       ProtobufCAllocator *allocator);
-/* Command methods */
-void   command__init
-                     (Command         *message);
-size_t command__get_packed_size
-                     (const Command   *message);
-size_t command__pack
-                     (const Command   *message,
+/* ProtoCommand methods */
+void   proto__command__init
+                     (ProtoCommand         *message);
+size_t proto__command__get_packed_size
+                     (const ProtoCommand   *message);
+size_t proto__command__pack
+                     (const ProtoCommand   *message,
                       uint8_t             *out);
-size_t command__pack_to_buffer
-                     (const Command   *message,
+size_t proto__command__pack_to_buffer
+                     (const ProtoCommand   *message,
                       ProtobufCBuffer     *buffer);
-Command *
-       command__unpack
+ProtoCommand *
+       proto__command__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   command__free_unpacked
-                     (Command *message,
+void   proto__command__free_unpacked
+                     (ProtoCommand *message,
                       ProtobufCAllocator *allocator);
-/* CarSensor methods */
-void   car_sensor__init
-                     (CarSensor         *message);
-size_t car_sensor__get_packed_size
-                     (const CarSensor   *message);
-size_t car_sensor__pack
-                     (const CarSensor   *message,
+/* ProtoCarSensor methods */
+void   proto__car__sensor__init
+                     (ProtoCarSensor         *message);
+size_t proto__car__sensor__get_packed_size
+                     (const ProtoCarSensor   *message);
+size_t proto__car__sensor__pack
+                     (const ProtoCarSensor   *message,
                       uint8_t             *out);
-size_t car_sensor__pack_to_buffer
-                     (const CarSensor   *message,
+size_t proto__car__sensor__pack_to_buffer
+                     (const ProtoCarSensor   *message,
                       ProtobufCBuffer     *buffer);
-CarSensor *
-       car_sensor__unpack
+ProtoCarSensor *
+       proto__car__sensor__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   car_sensor__free_unpacked
-                     (CarSensor *message,
+void   proto__car__sensor__free_unpacked
+                     (ProtoCarSensor *message,
                       ProtobufCAllocator *allocator);
-/* StintData methods */
-void   stint_data__init
-                     (StintData         *message);
-size_t stint_data__get_packed_size
-                     (const StintData   *message);
-size_t stint_data__pack
-                     (const StintData   *message,
+/* ProtoStintData methods */
+void   proto__stint__data__init
+                     (ProtoStintData         *message);
+size_t proto__stint__data__get_packed_size
+                     (const ProtoStintData   *message);
+size_t proto__stint__data__pack
+                     (const ProtoStintData   *message,
                       uint8_t             *out);
-size_t stint_data__pack_to_buffer
-                     (const StintData   *message,
+size_t proto__stint__data__pack_to_buffer
+                     (const ProtoStintData   *message,
                       ProtobufCBuffer     *buffer);
-StintData *
-       stint_data__unpack
+ProtoStintData *
+       proto__stint__data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   stint_data__free_unpacked
-                     (StintData *message,
+void   proto__stint__data__free_unpacked
+                     (ProtoStintData *message,
                       ProtobufCAllocator *allocator);
-/* Lap methods */
-void   lap__init
-                     (Lap         *message);
-size_t lap__get_packed_size
-                     (const Lap   *message);
-size_t lap__pack
-                     (const Lap   *message,
+/* ProtoLap methods */
+void   proto__lap__init
+                     (ProtoLap         *message);
+size_t proto__lap__get_packed_size
+                     (const ProtoLap   *message);
+size_t proto__lap__pack
+                     (const ProtoLap   *message,
                       uint8_t             *out);
-size_t lap__pack_to_buffer
-                     (const Lap   *message,
+size_t proto__lap__pack_to_buffer
+                     (const ProtoLap   *message,
                       ProtobufCBuffer     *buffer);
-Lap *
-       lap__unpack
+ProtoLap *
+       proto__lap__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   lap__free_unpacked
-                     (Lap *message,
+void   proto__lap__free_unpacked
+                     (ProtoLap *message,
                       ProtobufCAllocator *allocator);
-/* LapData methods */
-void   lap_data__init
-                     (LapData         *message);
-size_t lap_data__get_packed_size
-                     (const LapData   *message);
-size_t lap_data__pack
-                     (const LapData   *message,
+/* ProtoLapData methods */
+void   proto__lap__data__init
+                     (ProtoLapData         *message);
+size_t proto__lap__data__get_packed_size
+                     (const ProtoLapData   *message);
+size_t proto__lap__data__pack
+                     (const ProtoLapData   *message,
                       uint8_t             *out);
-size_t lap_data__pack_to_buffer
-                     (const LapData   *message,
+size_t proto__lap__data__pack_to_buffer
+                     (const ProtoLapData   *message,
                       ProtobufCBuffer     *buffer);
-LapData *
-       lap_data__unpack
+ProtoLapData *
+       proto__lap__data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   lap_data__free_unpacked
-                     (LapData *message,
+void   proto__lap__data__free_unpacked
+                     (ProtoLapData *message,
                       ProtobufCAllocator *allocator);
-/* McuData methods */
-void   mcu_data__init
-                     (McuData         *message);
-size_t mcu_data__get_packed_size
-                     (const McuData   *message);
-size_t mcu_data__pack
-                     (const McuData   *message,
+/* ProtoMcuData methods */
+void   proto__mcu__data__init
+                     (ProtoMcuData         *message);
+size_t proto__mcu__data__get_packed_size
+                     (const ProtoMcuData   *message);
+size_t proto__mcu__data__pack
+                     (const ProtoMcuData   *message,
                       uint8_t             *out);
-size_t mcu_data__pack_to_buffer
-                     (const McuData   *message,
+size_t proto__mcu__data__pack_to_buffer
+                     (const ProtoMcuData   *message,
                       ProtobufCBuffer     *buffer);
-McuData *
-       mcu_data__unpack
+ProtoMcuData *
+       proto__mcu__data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   mcu_data__free_unpacked
-                     (McuData *message,
+void   proto__mcu__data__free_unpacked
+                     (ProtoMcuData *message,
+                      ProtobufCAllocator *allocator);
+/* ProtoPayloadedMessage methods */
+void   proto__payloaded__message__init
+                     (ProtoPayloadedMessage         *message);
+size_t proto__payloaded__message__get_packed_size
+                     (const ProtoPayloadedMessage   *message);
+size_t proto__payloaded__message__pack
+                     (const ProtoPayloadedMessage   *message,
+                      uint8_t             *out);
+size_t proto__payloaded__message__pack_to_buffer
+                     (const ProtoPayloadedMessage   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoPayloadedMessage *
+       proto__payloaded__message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__payloaded__message__free_unpacked
+                     (ProtoPayloadedMessage *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*Event_Closure)
-                 (const Event *message,
+typedef void (*ProtoEvent_Closure)
+                 (const ProtoEvent *message,
                   void *closure_data);
-typedef void (*Command_Closure)
-                 (const Command *message,
+typedef void (*ProtoCommand_Closure)
+                 (const ProtoCommand *message,
                   void *closure_data);
-typedef void (*CarSensor_Closure)
-                 (const CarSensor *message,
+typedef void (*ProtoCarSensor_Closure)
+                 (const ProtoCarSensor *message,
                   void *closure_data);
-typedef void (*StintData_Closure)
-                 (const StintData *message,
+typedef void (*ProtoStintData_Closure)
+                 (const ProtoStintData *message,
                   void *closure_data);
-typedef void (*Lap_Closure)
-                 (const Lap *message,
+typedef void (*ProtoLap_Closure)
+                 (const ProtoLap *message,
                   void *closure_data);
-typedef void (*LapData_Closure)
-                 (const LapData *message,
+typedef void (*ProtoLapData_Closure)
+                 (const ProtoLapData *message,
                   void *closure_data);
-typedef void (*McuData_Closure)
-                 (const McuData *message,
+typedef void (*ProtoMcuData_Closure)
+                 (const ProtoMcuData *message,
+                  void *closure_data);
+typedef void (*ProtoPayloadedMessage_Closure)
+                 (const ProtoPayloadedMessage *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -333,16 +387,18 @@ typedef void (*McuData_Closure)
 
 /* --- descriptors --- */
 
-extern const ProtobufCEnumDescriptor    severity__descriptor;
-extern const ProtobufCEnumDescriptor    event_type__descriptor;
-extern const ProtobufCEnumDescriptor    command_type__descriptor;
-extern const ProtobufCMessageDescriptor event__descriptor;
-extern const ProtobufCMessageDescriptor command__descriptor;
-extern const ProtobufCMessageDescriptor car_sensor__descriptor;
-extern const ProtobufCMessageDescriptor stint_data__descriptor;
-extern const ProtobufCMessageDescriptor lap__descriptor;
-extern const ProtobufCMessageDescriptor lap_data__descriptor;
-extern const ProtobufCMessageDescriptor mcu_data__descriptor;
+extern const ProtobufCEnumDescriptor    proto__severity__descriptor;
+extern const ProtobufCEnumDescriptor    proto__event__type__descriptor;
+extern const ProtobufCEnumDescriptor    proto__command__type__descriptor;
+extern const ProtobufCEnumDescriptor    proto__lora__type__descriptor;
+extern const ProtobufCMessageDescriptor proto__event__descriptor;
+extern const ProtobufCMessageDescriptor proto__command__descriptor;
+extern const ProtobufCMessageDescriptor proto__car__sensor__descriptor;
+extern const ProtobufCMessageDescriptor proto__stint__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__lap__descriptor;
+extern const ProtobufCMessageDescriptor proto__lap__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__mcu__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__payloaded__message__descriptor;
 
 PROTOBUF_C__END_DECLS
 
