@@ -322,49 +322,184 @@ void   proto__mcu__data__free_unpacked
   assert(message->base.descriptor == &proto__mcu__data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   proto__payloaded__message__init
-                     (ProtoPayloadedMessage         *message)
+void   proto__update__data__init
+                     (ProtoUpdateData         *message)
 {
-  static const ProtoPayloadedMessage init_value = PROTO__PAYLOADED__MESSAGE__INIT;
+  static const ProtoUpdateData init_value = PROTO__UPDATE__DATA__INIT;
   *message = init_value;
 }
-size_t proto__payloaded__message__get_packed_size
-                     (const ProtoPayloadedMessage *message)
+size_t proto__update__data__get_packed_size
+                     (const ProtoUpdateData *message)
 {
-  assert(message->base.descriptor == &proto__payloaded__message__descriptor);
+  assert(message->base.descriptor == &proto__update__data__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t proto__payloaded__message__pack
-                     (const ProtoPayloadedMessage *message,
+size_t proto__update__data__pack
+                     (const ProtoUpdateData *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &proto__payloaded__message__descriptor);
+  assert(message->base.descriptor == &proto__update__data__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t proto__payloaded__message__pack_to_buffer
-                     (const ProtoPayloadedMessage *message,
+size_t proto__update__data__pack_to_buffer
+                     (const ProtoUpdateData *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &proto__payloaded__message__descriptor);
+  assert(message->base.descriptor == &proto__update__data__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-ProtoPayloadedMessage *
-       proto__payloaded__message__unpack
+ProtoUpdateData *
+       proto__update__data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (ProtoPayloadedMessage *)
-     protobuf_c_message_unpack (&proto__payloaded__message__descriptor,
+  return (ProtoUpdateData *)
+     protobuf_c_message_unpack (&proto__update__data__descriptor,
                                 allocator, len, data);
 }
-void   proto__payloaded__message__free_unpacked
-                     (ProtoPayloadedMessage *message,
+void   proto__update__data__free_unpacked
+                     (ProtoUpdateData *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &proto__payloaded__message__descriptor);
+  assert(message->base.descriptor == &proto__update__data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   proto__ack__data__init
+                     (ProtoAckData         *message)
+{
+  static const ProtoAckData init_value = PROTO__ACK__DATA__INIT;
+  *message = init_value;
+}
+size_t proto__ack__data__get_packed_size
+                     (const ProtoAckData *message)
+{
+  assert(message->base.descriptor == &proto__ack__data__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t proto__ack__data__pack
+                     (const ProtoAckData *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &proto__ack__data__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t proto__ack__data__pack_to_buffer
+                     (const ProtoAckData *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &proto__ack__data__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+ProtoAckData *
+       proto__ack__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (ProtoAckData *)
+     protobuf_c_message_unpack (&proto__ack__data__descriptor,
+                                allocator, len, data);
+}
+void   proto__ack__data__free_unpacked
+                     (ProtoAckData *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &proto__ack__data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   proto__lo_ra__data__init
+                     (ProtoLoRaData         *message)
+{
+  static const ProtoLoRaData init_value = PROTO__LO_RA__DATA__INIT;
+  *message = init_value;
+}
+size_t proto__lo_ra__data__get_packed_size
+                     (const ProtoLoRaData *message)
+{
+  assert(message->base.descriptor == &proto__lo_ra__data__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t proto__lo_ra__data__pack
+                     (const ProtoLoRaData *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &proto__lo_ra__data__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t proto__lo_ra__data__pack_to_buffer
+                     (const ProtoLoRaData *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &proto__lo_ra__data__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+ProtoLoRaData *
+       proto__lo_ra__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (ProtoLoRaData *)
+     protobuf_c_message_unpack (&proto__lo_ra__data__descriptor,
+                                allocator, len, data);
+}
+void   proto__lo_ra__data__free_unpacked
+                     (ProtoLoRaData *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &proto__lo_ra__data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   proto__message__init
+                     (ProtoMessage         *message)
+{
+  static const ProtoMessage init_value = PROTO__MESSAGE__INIT;
+  *message = init_value;
+}
+size_t proto__message__get_packed_size
+                     (const ProtoMessage *message)
+{
+  assert(message->base.descriptor == &proto__message__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t proto__message__pack
+                     (const ProtoMessage *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &proto__message__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t proto__message__pack_to_buffer
+                     (const ProtoMessage *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &proto__message__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+ProtoMessage *
+       proto__message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (ProtoMessage *)
+     protobuf_c_message_unpack (&proto__message__descriptor,
+                                allocator, len, data);
+}
+void   proto__message__free_unpacked
+                     (ProtoMessage *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &proto__message__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 static const ProtobufCFieldDescriptor proto__event__field_descriptors[6] =
@@ -547,6 +682,8 @@ const ProtobufCMessageDescriptor proto__command__descriptor =
   (ProtobufCMessageInit) proto__command__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const uint32_t proto__car__sensor__temp__default_value = 0u;
+static const double proto__car__sensor__preassure__default_value = 0;
 static const ProtobufCFieldDescriptor proto__car__sensor__field_descriptors[2] =
 {
   {
@@ -557,7 +694,7 @@ static const ProtobufCFieldDescriptor proto__car__sensor__field_descriptors[2] =
     offsetof(ProtoCarSensor, has_temp),
     offsetof(ProtoCarSensor, temp),
     NULL,
-    NULL,
+    &proto__car__sensor__temp__default_value,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
@@ -569,7 +706,7 @@ static const ProtobufCFieldDescriptor proto__car__sensor__field_descriptors[2] =
     offsetof(ProtoCarSensor, has_preassure),
     offsetof(ProtoCarSensor, preassure),
     NULL,
-    NULL,
+    &proto__car__sensor__preassure__default_value,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
@@ -726,7 +863,7 @@ const ProtobufCMessageDescriptor proto__lap__descriptor =
   (ProtobufCMessageInit) proto__lap__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__lap__data__field_descriptors[4] =
+static const ProtobufCFieldDescriptor proto__lap__data__field_descriptors[5] =
 {
   {
     "lap_no",
@@ -741,24 +878,36 @@ static const ProtobufCFieldDescriptor proto__lap__data__field_descriptors[4] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "best_lap",
+    "best_lap_ms",
     2,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_UINT32,
-    offsetof(ProtoLapData, has_best_lap),
-    offsetof(ProtoLapData, best_lap),
+    offsetof(ProtoLapData, has_best_lap_ms),
+    offsetof(ProtoLapData, best_lap_ms),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "current_lap",
+    "current_lap_ms",
     3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_UINT32,
-    offsetof(ProtoLapData, has_current_lap),
-    offsetof(ProtoLapData, current_lap),
+    offsetof(ProtoLapData, has_current_lap_ms),
+    offsetof(ProtoLapData, current_lap_ms),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "current_lap_snapshot_time",
+    4,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ProtoLapData, has_current_lap_snapshot_time),
+    offsetof(ProtoLapData, current_lap_snapshot_time),
     NULL,
     NULL,
     0,             /* flags */
@@ -766,7 +915,7 @@ static const ProtobufCFieldDescriptor proto__lap__data__field_descriptors[4] =
   },
   {
     "laps",
-    4,
+    5,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(ProtoLapData, n_laps),
@@ -778,15 +927,16 @@ static const ProtobufCFieldDescriptor proto__lap__data__field_descriptors[4] =
   },
 };
 static const unsigned proto__lap__data__field_indices_by_name[] = {
-  1,   /* field[1] = best_lap */
-  2,   /* field[2] = current_lap */
+  1,   /* field[1] = best_lap_ms */
+  2,   /* field[2] = current_lap_ms */
+  3,   /* field[3] = current_lap_snapshot_time */
   0,   /* field[0] = lap_no */
-  3,   /* field[3] = laps */
+  4,   /* field[4] = laps */
 };
 static const ProtobufCIntRange proto__lap__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor proto__lap__data__descriptor =
 {
@@ -796,7 +946,7 @@ const ProtobufCMessageDescriptor proto__lap__data__descriptor =
   "ProtoLapData",
   "",
   sizeof(ProtoLapData),
-  4,
+  5,
   proto__lap__data__field_descriptors,
   proto__lap__data__field_indices_by_name,
   1,  proto__lap__data__number_ranges,
@@ -945,39 +1095,15 @@ const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
   (ProtobufCMessageInit) proto__mcu__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__payloaded__message__field_descriptors[8] =
+static const ProtobufCFieldDescriptor proto__update__data__field_descriptors[5] =
 {
   {
-    "type",
-    1,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_ENUM,
-    offsetof(ProtoPayloadedMessage, has_type),
-    offsetof(ProtoPayloadedMessage, type),
-    &proto__lora__type__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "seq_nr",
-    2,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    offsetof(ProtoPayloadedMessage, has_seq_nr),
-    offsetof(ProtoPayloadedMessage, seq_nr),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "water_sensor",
-    3,
+    1,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    offsetof(ProtoPayloadedMessage, water_sensor),
+    offsetof(ProtoUpdateData, water_sensor),
     &proto__car__sensor__descriptor,
     NULL,
     0,             /* flags */
@@ -985,11 +1111,11 @@ static const ProtobufCFieldDescriptor proto__payloaded__message__field_descripto
   },
   {
     "oil_sensor",
-    4,
+    2,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    offsetof(ProtoPayloadedMessage, oil_sensor),
+    offsetof(ProtoUpdateData, oil_sensor),
     &proto__car__sensor__descriptor,
     NULL,
     0,             /* flags */
@@ -997,11 +1123,11 @@ static const ProtobufCFieldDescriptor proto__payloaded__message__field_descripto
   },
   {
     "gas_sensor",
-    5,
+    3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    offsetof(ProtoPayloadedMessage, gas_sensor),
+    offsetof(ProtoUpdateData, gas_sensor),
     &proto__car__sensor__descriptor,
     NULL,
     0,             /* flags */
@@ -1009,11 +1135,11 @@ static const ProtobufCFieldDescriptor proto__payloaded__message__field_descripto
   },
   {
     "lap_data",
-    6,
+    4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    offsetof(ProtoPayloadedMessage, lap_data),
+    offsetof(ProtoUpdateData, lap_data),
     &proto__lap__data__descriptor,
     NULL,
     0,             /* flags */
@@ -1021,57 +1147,236 @@ static const ProtobufCFieldDescriptor proto__payloaded__message__field_descripto
   },
   {
     "stint_data",
-    7,
+    5,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    offsetof(ProtoPayloadedMessage, stint_data),
+    offsetof(ProtoUpdateData, stint_data),
     &proto__stint__data__descriptor,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+};
+static const unsigned proto__update__data__field_indices_by_name[] = {
+  2,   /* field[2] = gas_sensor */
+  3,   /* field[3] = lap_data */
+  1,   /* field[1] = oil_sensor */
+  4,   /* field[4] = stint_data */
+  0,   /* field[0] = water_sensor */
+};
+static const ProtobufCIntRange proto__update__data__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 5 }
+};
+const ProtobufCMessageDescriptor proto__update__data__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Proto_Update_Data",
+  "ProtoUpdateData",
+  "ProtoUpdateData",
+  "",
+  sizeof(ProtoUpdateData),
+  5,
+  proto__update__data__field_descriptors,
+  proto__update__data__field_indices_by_name,
+  1,  proto__update__data__number_ranges,
+  (ProtobufCMessageInit) proto__update__data__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor proto__ack__data__field_descriptors[1] =
+{
   {
-    "acks",
-    8,
-    PROTOBUF_C_LABEL_REPEATED,
+    "seq_nr",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_UINT32,
-    offsetof(ProtoPayloadedMessage, n_acks),
-    offsetof(ProtoPayloadedMessage, acks),
+    offsetof(ProtoAckData, has_seq_nr),
+    offsetof(ProtoAckData, seq_nr),
     NULL,
     NULL,
-    0 | PROTOBUF_C_FIELD_FLAG_PACKED,             /* flags */
+    0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned proto__payloaded__message__field_indices_by_name[] = {
-  7,   /* field[7] = acks */
-  4,   /* field[4] = gas_sensor */
-  5,   /* field[5] = lap_data */
-  3,   /* field[3] = oil_sensor */
-  1,   /* field[1] = seq_nr */
-  6,   /* field[6] = stint_data */
-  0,   /* field[0] = type */
-  2,   /* field[2] = water_sensor */
+static const unsigned proto__ack__data__field_indices_by_name[] = {
+  0,   /* field[0] = seq_nr */
 };
-static const ProtobufCIntRange proto__payloaded__message__number_ranges[1 + 1] =
+static const ProtobufCIntRange proto__ack__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 8 }
+  { 0, 1 }
 };
-const ProtobufCMessageDescriptor proto__payloaded__message__descriptor =
+const ProtobufCMessageDescriptor proto__ack__data__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Proto_Payloaded_Message",
-  "ProtoPayloadedMessage",
-  "ProtoPayloadedMessage",
+  "Proto_Ack_Data",
+  "ProtoAckData",
+  "ProtoAckData",
   "",
-  sizeof(ProtoPayloadedMessage),
-  8,
-  proto__payloaded__message__field_descriptors,
-  proto__payloaded__message__field_indices_by_name,
-  1,  proto__payloaded__message__number_ranges,
-  (ProtobufCMessageInit) proto__payloaded__message__init,
+  sizeof(ProtoAckData),
+  1,
+  proto__ack__data__field_descriptors,
+  proto__ack__data__field_indices_by_name,
+  1,  proto__ack__data__number_ranges,
+  (ProtobufCMessageInit) proto__ack__data__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const uint32_t proto__lo_ra__data__seq_nr__default_value = 0u;
+static const protobuf_c_boolean proto__lo_ra__data__requires_ack__default_value = 0;
+static const ProtobufCFieldDescriptor proto__lo_ra__data__field_descriptors[6] =
+{
+  {
+    "seq_nr",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ProtoLoRaData, has_seq_nr),
+    offsetof(ProtoLoRaData, seq_nr),
+    NULL,
+    &proto__lo_ra__data__seq_nr__default_value,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "requires_ack",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(ProtoLoRaData, has_requires_ack),
+    offsetof(ProtoLoRaData, requires_ack),
+    NULL,
+    &proto__lo_ra__data__requires_ack__default_value,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "timestamp",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ProtoLoRaData, has_timestamp),
+    offsetof(ProtoLoRaData, timestamp),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "update_data",
+    4,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoLoRaData, update_data),
+    &proto__update__data__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "command_data",
+    5,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoLoRaData, command_data),
+    &proto__command__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "ack_data",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoLoRaData, ack_data),
+    &proto__ack__data__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned proto__lo_ra__data__field_indices_by_name[] = {
+  5,   /* field[5] = ack_data */
+  4,   /* field[4] = command_data */
+  1,   /* field[1] = requires_ack */
+  0,   /* field[0] = seq_nr */
+  2,   /* field[2] = timestamp */
+  3,   /* field[3] = update_data */
+};
+static const ProtobufCIntRange proto__lo_ra__data__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 6 }
+};
+const ProtobufCMessageDescriptor proto__lo_ra__data__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Proto_LoRa_Data",
+  "ProtoLoRaData",
+  "ProtoLoRaData",
+  "",
+  sizeof(ProtoLoRaData),
+  6,
+  proto__lo_ra__data__field_descriptors,
+  proto__lo_ra__data__field_indices_by_name,
+  1,  proto__lo_ra__data__number_ranges,
+  (ProtobufCMessageInit) proto__lo_ra__data__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor proto__message__field_descriptors[2] =
+{
+  {
+    "mcu_data",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMessage, mcu_data),
+    &proto__mcu__data__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "lora_data",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMessage, lora_data),
+    &proto__lo_ra__data__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned proto__message__field_indices_by_name[] = {
+  1,   /* field[1] = lora_data */
+  0,   /* field[0] = mcu_data */
+};
+static const ProtobufCIntRange proto__message__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor proto__message__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Proto_Message",
+  "ProtoMessage",
+  "ProtoMessage",
+  "",
+  sizeof(ProtoMessage),
+  2,
+  proto__message__field_descriptors,
+  proto__message__field_indices_by_name,
+  1,  proto__message__number_ranges,
+  (ProtobufCMessageInit) proto__message__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCEnumValue proto__severity__enum_values_by_number[4] =

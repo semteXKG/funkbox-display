@@ -20,22 +20,27 @@ char* TAG_BC = "broadcast";
 
 bool first_message = true;
 
+ProtoMessage* previous_data = NULL; 
 void parse_proto(void* binary_message, size_t len) {
-    ProtoMcuData* data = proto__mcu__data__unpack(NULL, len, binary_message);
+    ProtoMessage* data = proto__message__unpack(NULL, len, binary_message);
     if (data == NULL) {
         ESP_LOGI(TAG_BC, "Could not deserialize data");
         return; 
     }
 
-
-    if(data->oil != NULL) {
-        ESP_LOGI(TAG_BC, "oil not null");
-        ESP_LOGI(TAG_BC, "%f + %"PRIu32,data->oil->preassure, data->oil->temp);
+    if(data->mcu_data == NULL) {
+        proto__message__free_unpacked(data, NULL);
+        return;
     }
     
-    if (xSemaphoreTake(get_mutex(), 0) == pdTRUE) {
-        proto__mcu__data__free_unpacked(get_data(), NULL);
-        set_data(data);
+    if (xSemaphoreTake(get_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
+        if(previous_data != NULL) {
+            proto__message__free_unpacked(previous_data, NULL);
+        }
+
+        data->mcu_data->network_time_adjustment = data->mcu_data->network_time_adjustment - esp_timer_get_time() / 1000;
+        set_data(data->mcu_data);
+        previous_data = data;
         xSemaphoreGive(get_mutex());
     } else {
         ESP_LOGI(TAG_BC, "Could not update data");
@@ -220,5 +225,5 @@ void listen_broadcast(void *pvParameters)
 
 void broadcast_socket_start() {
   esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-  xTaskCreate(&listen_broadcast, "listen_task", 4096, netif, 5, NULL);
+  xTaskCreate(&listen_broadcast, "listen_task", 8192, netif, 5, NULL);
 }

@@ -22,7 +22,10 @@ typedef struct _ProtoStintData ProtoStintData;
 typedef struct _ProtoLap ProtoLap;
 typedef struct _ProtoLapData ProtoLapData;
 typedef struct _ProtoMcuData ProtoMcuData;
-typedef struct _ProtoPayloadedMessage ProtoPayloadedMessage;
+typedef struct _ProtoUpdateData ProtoUpdateData;
+typedef struct _ProtoAckData ProtoAckData;
+typedef struct _ProtoLoRaData ProtoLoRaData;
+typedef struct _ProtoMessage ProtoMessage;
 
 
 /* --- enums --- */
@@ -111,7 +114,7 @@ struct  _ProtoCarSensor
 };
 #define PROTO__CAR__SENSOR__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__car__sensor__descriptor) \
-    , 0, 0, 0, 0 }
+    , 0, 0u, 0, 0 }
 
 
 struct  _ProtoStintData
@@ -149,16 +152,18 @@ struct  _ProtoLapData
   ProtobufCMessage base;
   protobuf_c_boolean has_lap_no;
   int32_t lap_no;
-  protobuf_c_boolean has_best_lap;
-  uint32_t best_lap;
-  protobuf_c_boolean has_current_lap;
-  uint32_t current_lap;
+  protobuf_c_boolean has_best_lap_ms;
+  uint32_t best_lap_ms;
+  protobuf_c_boolean has_current_lap_ms;
+  uint32_t current_lap_ms;
+  protobuf_c_boolean has_current_lap_snapshot_time;
+  uint32_t current_lap_snapshot_time;
   size_t n_laps;
   ProtoLap **laps;
 };
 #define PROTO__LAP__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__lap__data__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0,NULL }
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0,NULL }
 
 
 struct  _ProtoMcuData
@@ -183,24 +188,58 @@ struct  _ProtoMcuData
     , 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL }
 
 
-struct  _ProtoPayloadedMessage
+struct  _ProtoUpdateData
 {
   ProtobufCMessage base;
-  protobuf_c_boolean has_type;
-  ProtoLoraType type;
-  protobuf_c_boolean has_seq_nr;
-  uint32_t seq_nr;
   ProtoCarSensor *water_sensor;
   ProtoCarSensor *oil_sensor;
   ProtoCarSensor *gas_sensor;
   ProtoLapData *lap_data;
   ProtoStintData *stint_data;
-  size_t n_acks;
-  uint32_t *acks;
 };
-#define PROTO__PAYLOADED__MESSAGE__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&proto__payloaded__message__descriptor) \
-    , 0, PROTO__LORA__TYPE__LORA_ACK, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL }
+#define PROTO__UPDATE__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__update__data__descriptor) \
+    , NULL, NULL, NULL, NULL, NULL }
+
+
+struct  _ProtoAckData
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_seq_nr;
+  uint32_t seq_nr;
+};
+#define PROTO__ACK__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__ack__data__descriptor) \
+    , 0, 0 }
+
+
+struct  _ProtoLoRaData
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_seq_nr;
+  uint32_t seq_nr;
+  protobuf_c_boolean has_requires_ack;
+  protobuf_c_boolean requires_ack;
+  protobuf_c_boolean has_timestamp;
+  uint32_t timestamp;
+  ProtoUpdateData *update_data;
+  ProtoCommand *command_data;
+  ProtoAckData *ack_data;
+};
+#define PROTO__LO_RA__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__lo_ra__data__descriptor) \
+    , 0, 0u, 0, 0, 0, 0, NULL, NULL, NULL }
+
+
+struct  _ProtoMessage
+{
+  ProtobufCMessage base;
+  ProtoMcuData *mcu_data;
+  ProtoLoRaData *lora_data;
+};
+#define PROTO__MESSAGE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__message__descriptor) \
+    , NULL, NULL }
 
 
 /* ProtoEvent methods */
@@ -336,24 +375,81 @@ ProtoMcuData *
 void   proto__mcu__data__free_unpacked
                      (ProtoMcuData *message,
                       ProtobufCAllocator *allocator);
-/* ProtoPayloadedMessage methods */
-void   proto__payloaded__message__init
-                     (ProtoPayloadedMessage         *message);
-size_t proto__payloaded__message__get_packed_size
-                     (const ProtoPayloadedMessage   *message);
-size_t proto__payloaded__message__pack
-                     (const ProtoPayloadedMessage   *message,
+/* ProtoUpdateData methods */
+void   proto__update__data__init
+                     (ProtoUpdateData         *message);
+size_t proto__update__data__get_packed_size
+                     (const ProtoUpdateData   *message);
+size_t proto__update__data__pack
+                     (const ProtoUpdateData   *message,
                       uint8_t             *out);
-size_t proto__payloaded__message__pack_to_buffer
-                     (const ProtoPayloadedMessage   *message,
+size_t proto__update__data__pack_to_buffer
+                     (const ProtoUpdateData   *message,
                       ProtobufCBuffer     *buffer);
-ProtoPayloadedMessage *
-       proto__payloaded__message__unpack
+ProtoUpdateData *
+       proto__update__data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   proto__payloaded__message__free_unpacked
-                     (ProtoPayloadedMessage *message,
+void   proto__update__data__free_unpacked
+                     (ProtoUpdateData *message,
+                      ProtobufCAllocator *allocator);
+/* ProtoAckData methods */
+void   proto__ack__data__init
+                     (ProtoAckData         *message);
+size_t proto__ack__data__get_packed_size
+                     (const ProtoAckData   *message);
+size_t proto__ack__data__pack
+                     (const ProtoAckData   *message,
+                      uint8_t             *out);
+size_t proto__ack__data__pack_to_buffer
+                     (const ProtoAckData   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoAckData *
+       proto__ack__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__ack__data__free_unpacked
+                     (ProtoAckData *message,
+                      ProtobufCAllocator *allocator);
+/* ProtoLoRaData methods */
+void   proto__lo_ra__data__init
+                     (ProtoLoRaData         *message);
+size_t proto__lo_ra__data__get_packed_size
+                     (const ProtoLoRaData   *message);
+size_t proto__lo_ra__data__pack
+                     (const ProtoLoRaData   *message,
+                      uint8_t             *out);
+size_t proto__lo_ra__data__pack_to_buffer
+                     (const ProtoLoRaData   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoLoRaData *
+       proto__lo_ra__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__lo_ra__data__free_unpacked
+                     (ProtoLoRaData *message,
+                      ProtobufCAllocator *allocator);
+/* ProtoMessage methods */
+void   proto__message__init
+                     (ProtoMessage         *message);
+size_t proto__message__get_packed_size
+                     (const ProtoMessage   *message);
+size_t proto__message__pack
+                     (const ProtoMessage   *message,
+                      uint8_t             *out);
+size_t proto__message__pack_to_buffer
+                     (const ProtoMessage   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoMessage *
+       proto__message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__message__free_unpacked
+                     (ProtoMessage *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
@@ -378,8 +474,17 @@ typedef void (*ProtoLapData_Closure)
 typedef void (*ProtoMcuData_Closure)
                  (const ProtoMcuData *message,
                   void *closure_data);
-typedef void (*ProtoPayloadedMessage_Closure)
-                 (const ProtoPayloadedMessage *message,
+typedef void (*ProtoUpdateData_Closure)
+                 (const ProtoUpdateData *message,
+                  void *closure_data);
+typedef void (*ProtoAckData_Closure)
+                 (const ProtoAckData *message,
+                  void *closure_data);
+typedef void (*ProtoLoRaData_Closure)
+                 (const ProtoLoRaData *message,
+                  void *closure_data);
+typedef void (*ProtoMessage_Closure)
+                 (const ProtoMessage *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -398,7 +503,10 @@ extern const ProtobufCMessageDescriptor proto__stint__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__lap__descriptor;
 extern const ProtobufCMessageDescriptor proto__lap__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__mcu__data__descriptor;
-extern const ProtobufCMessageDescriptor proto__payloaded__message__descriptor;
+extern const ProtobufCMessageDescriptor proto__update__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__ack__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__lo_ra__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__message__descriptor;
 
 PROTOBUF_C__END_DECLS
 

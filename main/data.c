@@ -19,18 +19,6 @@ ProtoCarSensor get_water_warn() {
 
 ProtoMcuData* data = NULL;
 
-/**
-void update_timestamps(TimerHandle_t xTimer ) {
-    struct mcu_data* data = get_data();
-    if (data->lap_data.current_lap != -1) {
-        data->lap_data.current_lap += 3;
-    }
-
-    if (data->stint.enabled) {
-        data->stint.elapsed += 3;
-    }
-}*/
-
 SemaphoreHandle_t xSemaphore;
 
 void data_start() {
