@@ -125,13 +125,15 @@ struct  _ProtoStintData
   protobuf_c_boolean has_enabled;
   protobuf_c_boolean enabled;
   protobuf_c_boolean has_target;
-  int64_t target;
+  uint32_t target;
   protobuf_c_boolean has_elapsed;
-  int64_t elapsed;
+  uint32_t elapsed;
+  protobuf_c_boolean has_elapsed_timestamp;
+  uint32_t elapsed_timestamp;
 };
 #define PROTO__STINT__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__stint__data__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  _ProtoLap
@@ -170,7 +172,9 @@ struct  _ProtoMcuData
 {
   ProtobufCMessage base;
   protobuf_c_boolean has_network_time_adjustment;
-  int64_t network_time_adjustment;
+  uint32_t network_time_adjustment;
+  protobuf_c_boolean has_send_timestamp;
+  uint32_t send_timestamp;
   ProtoCarSensor *water;
   ProtoCarSensor *oil;
   ProtoCarSensor *gas;
@@ -185,7 +189,7 @@ struct  _ProtoMcuData
 };
 #define PROTO__MCU__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__mcu__data__descriptor) \
-    , 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL }
+    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL }
 
 
 struct  _ProtoUpdateData

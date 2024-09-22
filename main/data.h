@@ -19,6 +19,7 @@ SemaphoreHandle_t get_mutex();
 
 ProtoMcuData* get_data();
 void set_data(ProtoMcuData* proto_data);
+uint32_t get_data_age();
 
 void data_start();
 

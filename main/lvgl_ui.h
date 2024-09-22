@@ -11,4 +11,4 @@
 
 void lvgl_draw_main_ui(lv_disp_t *disp);
 void lvgl_update_data();
-void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t elapsed);
+void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t elapsed, int32_t adjust);

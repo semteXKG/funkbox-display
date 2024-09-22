@@ -18,6 +18,7 @@ ProtoCarSensor get_water_warn() {
 }
 
 ProtoMcuData* data = NULL;
+uint32_t data_age = 0;
 
 SemaphoreHandle_t xSemaphore;
 
@@ -67,10 +68,15 @@ ProtoMcuData* get_data() {
     return data;
 }
 
+uint32_t get_data_age() {
+    return data_age;
+}
+
 SemaphoreHandle_t get_mutex() {
     return xSemaphore;
 }
 
 void set_data(ProtoMcuData* proto_data) {
     data = proto_data;
+    data_age = esp_timer_get_time() / 1000;
 }

@@ -34,11 +34,12 @@ void parse_proto(void* binary_message, size_t len) {
     }
     
     if (xSemaphoreTake(get_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
+        ESP_LOGI(TAG_BC, "Updating mcu data");
         if(previous_data != NULL) {
             proto__message__free_unpacked(previous_data, NULL);
         }
 
-        data->mcu_data->network_time_adjustment = data->mcu_data->network_time_adjustment - esp_timer_get_time() / 1000;
+        data->mcu_data->network_time_adjustment = data->mcu_data->send_timestamp - esp_timer_get_time() / 1000;
         set_data(data->mcu_data);
         previous_data = data;
         xSemaphoreGive(get_mutex());

@@ -735,7 +735,7 @@ const ProtobufCMessageDescriptor proto__car__sensor__descriptor =
   (ProtobufCMessageInit) proto__car__sensor__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__stint__data__field_descriptors[4] =
+static const ProtobufCFieldDescriptor proto__stint__data__field_descriptors[5] =
 {
   {
     "running",
@@ -765,7 +765,7 @@ static const ProtobufCFieldDescriptor proto__stint__data__field_descriptors[4] =
     "target",
     3,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_INT64,
+    PROTOBUF_C_TYPE_UINT32,
     offsetof(ProtoStintData, has_target),
     offsetof(ProtoStintData, target),
     NULL,
@@ -777,9 +777,21 @@ static const ProtobufCFieldDescriptor proto__stint__data__field_descriptors[4] =
     "elapsed",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_INT64,
+    PROTOBUF_C_TYPE_UINT32,
     offsetof(ProtoStintData, has_elapsed),
     offsetof(ProtoStintData, elapsed),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "elapsed_timestamp",
+    5,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ProtoStintData, has_elapsed_timestamp),
+    offsetof(ProtoStintData, elapsed_timestamp),
     NULL,
     NULL,
     0,             /* flags */
@@ -788,6 +800,7 @@ static const ProtobufCFieldDescriptor proto__stint__data__field_descriptors[4] =
 };
 static const unsigned proto__stint__data__field_indices_by_name[] = {
   3,   /* field[3] = elapsed */
+  4,   /* field[4] = elapsed_timestamp */
   1,   /* field[1] = enabled */
   0,   /* field[0] = running */
   2,   /* field[2] = target */
@@ -795,7 +808,7 @@ static const unsigned proto__stint__data__field_indices_by_name[] = {
 static const ProtobufCIntRange proto__stint__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor proto__stint__data__descriptor =
 {
@@ -805,7 +818,7 @@ const ProtobufCMessageDescriptor proto__stint__data__descriptor =
   "ProtoStintData",
   "",
   sizeof(ProtoStintData),
-  4,
+  5,
   proto__stint__data__field_descriptors,
   proto__stint__data__field_indices_by_name,
   1,  proto__stint__data__number_ranges,
@@ -953,13 +966,13 @@ const ProtobufCMessageDescriptor proto__lap__data__descriptor =
   (ProtobufCMessageInit) proto__lap__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
+static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[10] =
 {
   {
     "network_time_adjustment",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_INT64,
+    PROTOBUF_C_TYPE_UINT32,
     offsetof(ProtoMcuData, has_network_time_adjustment),
     offsetof(ProtoMcuData, network_time_adjustment),
     NULL,
@@ -968,8 +981,20 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "water",
+    "send_timestamp",
     2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ProtoMcuData, has_send_timestamp),
+    offsetof(ProtoMcuData, send_timestamp),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "water",
+    3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -981,7 +1006,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "oil",
-    3,
+    4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -993,7 +1018,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "gas",
-    4,
+    5,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -1005,7 +1030,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "stint",
-    5,
+    6,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -1017,7 +1042,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "lap_data",
-    6,
+    7,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -1029,7 +1054,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "events",
-    7,
+    8,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(ProtoMcuData, n_events),
@@ -1041,7 +1066,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "outgoing_commands",
-    8,
+    9,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(ProtoMcuData, n_outgoing_commands),
@@ -1053,7 +1078,7 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
   {
     "incoming_commands",
-    9,
+    10,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(ProtoMcuData, n_incoming_commands),
@@ -1065,20 +1090,21 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[9] =
   },
 };
 static const unsigned proto__mcu__data__field_indices_by_name[] = {
-  6,   /* field[6] = events */
-  3,   /* field[3] = gas */
-  8,   /* field[8] = incoming_commands */
-  5,   /* field[5] = lap_data */
+  7,   /* field[7] = events */
+  4,   /* field[4] = gas */
+  9,   /* field[9] = incoming_commands */
+  6,   /* field[6] = lap_data */
   0,   /* field[0] = network_time_adjustment */
-  2,   /* field[2] = oil */
-  7,   /* field[7] = outgoing_commands */
-  4,   /* field[4] = stint */
-  1,   /* field[1] = water */
+  3,   /* field[3] = oil */
+  8,   /* field[8] = outgoing_commands */
+  1,   /* field[1] = send_timestamp */
+  5,   /* field[5] = stint */
+  2,   /* field[2] = water */
 };
 static const ProtobufCIntRange proto__mcu__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 9 }
+  { 0, 10 }
 };
 const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
 {
@@ -1088,7 +1114,7 @@ const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
   "ProtoMcuData",
   "",
   sizeof(ProtoMcuData),
-  9,
+  10,
   proto__mcu__data__field_descriptors,
   proto__mcu__data__field_indices_by_name,
   1,  proto__mcu__data__number_ranges,

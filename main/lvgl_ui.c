@@ -503,13 +503,22 @@ void lvgl_set_last_laps_main(uint64_t time_offset, ProtoLapData* lap_data) {
 }
 
 long stint_timer_checksum = -1L;
-void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t elapsed) {
-    long checksum = enabled + running + target/500 + elapsed/500;
+uint64_t last_elapsed;
+int cnt = 0;
+void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t elapsed, int32_t time_adjust) {
+    if(cnt++%20 == 0) {
+        ESP_LOGI(TAG_MAIN, "%"PRId64" - %"PRId64" - %"PRId32,(elapsed + time_adjust), elapsed, time_adjust);
+    }
+    
+    if(elapsed < last_elapsed && time_adjust < 1000) {
+        return;
+    }
+    long checksum = enabled + running + target + (elapsed + time_adjust);
     if (checksum == stint_timer_checksum) {
         return;
     }
     stint_timer_checksum = checksum;
-
+    last_elapsed = elapsed;
     if (!enabled) {
         draw_as_normal(stint_rem_obj, remaining_time);
         lv_label_set_text(remaining_time, "OFF");
@@ -522,7 +531,7 @@ void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t el
         return; 
     }
 
-    long time_rem = round((double)(target - elapsed));
+    long time_rem = round((double)(target - (elapsed + time_adjust)));
     bool is_neg = false;
     double elapsed_percent = target == 0 ? 0 : (double)((double)elapsed / target);
     
@@ -537,10 +546,12 @@ void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t el
         if(elapsed_percent > 1) {
             is_neg = true;
             time_rem *= -1;
-            int aligned = round((double)time_rem / 1000);
-            if (aligned % 2 == 0) {
-                draw_as_normal(stint_rem_obj, remaining_time);
-            }
+            #if PRIMARY
+                int aligned = round((double)time_rem / 1000);
+                if (aligned % 2 == 0) {
+                    draw_as_normal(stint_rem_obj, remaining_time);
+                }
+            #endif
         }
     }
    
@@ -639,8 +650,8 @@ void lvgl_update_data() {
             xSemaphoreGive(get_mutex());
             return;
         }
-        
-        lvgl_set_stint_timer(data->stint->enabled, data->stint->running, data->stint->target, data->stint->elapsed);
+        int32_t time_adjust = data->send_timestamp - data->stint->elapsed_timestamp + (esp_timer_get_time() / 1000 - get_data_age());
+        lvgl_set_stint_timer(data->stint->enabled, data->stint->running, data->stint->target, data->stint->elapsed, time_adjust);
         lvgl_set_last_laps(data->lap_data);
         lvgl_set_last_laps_main(data->network_time_adjustment, data->lap_data);
         lvgl_set_last_comms(data->network_time_adjustment, data);
