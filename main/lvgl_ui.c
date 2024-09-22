@@ -505,11 +505,7 @@ void lvgl_set_last_laps_main(uint64_t time_offset, ProtoLapData* lap_data) {
 long stint_timer_checksum = -1L;
 uint64_t last_elapsed;
 int cnt = 0;
-void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t elapsed, int32_t time_adjust) {
-    if(cnt++%20 == 0) {
-        ESP_LOGI(TAG_MAIN, "%"PRId64" - %"PRId64" - %"PRId32,(elapsed + time_adjust), elapsed, time_adjust);
-    }
-    
+void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t elapsed, int32_t time_adjust) {    
     if(elapsed < last_elapsed && time_adjust < 1000) {
         return;
     }
