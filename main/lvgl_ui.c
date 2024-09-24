@@ -331,16 +331,19 @@ void create_lap_child_element(lv_obj_t* container, int i) {
     lv_obj_set_style_text_font(lap_no, &lv_immono_28, LV_PART_MAIN);
     lap_number_labels[i] = lap_no;
     // no lap + diff as first is LIVE
-    if (i == 0) {
-        return;
-    }
-
+    #if PRIMARY
+        if (i == 0) {
+            return; 
+        }
+    #endif
+    
     lv_obj_t* lap_diff = lv_label_create(sub_obj);
     lv_label_set_text(lap_diff, "");
     lv_obj_set_style_text_color(lap_diff, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_align(lap_diff, LV_ALIGN_RIGHT_MID);
     lv_obj_set_style_text_font(lap_diff, &lv_immono_28, LV_PART_MAIN);
     lap_diff_labels[i] = lap_diff;
+
 }
 
 void create_main_laps(lv_obj_t* screen) {
@@ -446,7 +449,7 @@ void lvgl_set_last_laps(ProtoLapData* data) {
 }
 
 bool previously_running = false;
-long checksums[4] = {-1};
+long checksums[5] = {-1};
 void lvgl_set_last_laps_main(uint64_t time_offset, ProtoLapData* lap_data) {    
     if(lap_data->has_current_lap_ms) {
         uint32_t data_age = (esp_timer_get_time() / 1000)  - (lap_data->current_lap_snapshot_time - time_offset);
@@ -461,24 +464,27 @@ void lvgl_set_last_laps_main(uint64_t time_offset, ProtoLapData* lap_data) {
         lv_label_set_text(lap_number_labels[0], "");
     }
     previously_running = lap_data->has_current_lap_ms;
-    int control_index = 0;
-    size_t no_of_elements = lap_data->n_laps;
-    for (int i = 0; i < no_of_elements; i ++) {
+    #if PRIMARY 
+        int control_index = 0;
+        size_t last_index = lap_data->n_laps > 4 ? 4 : lap_data->n_laps;
+    #else
+        int control_index = -1;
+        size_t last_index = lap_data->n_laps > 5 ? 5 : lap_data->n_laps;
+    #endif
+    
+    
+    ESP_LOGI(TAG_MAIN, "Last idx %d, %d", lap_data->n_laps, last_index);
+    for (int i = 0; i < last_index; i ++) {
         control_index++;
-        
-        
-        int64_t time_in_ms = lap_data->laps[i]->lap_time_ms;
-        int64_t diff_in_ms = time_in_ms - lap_data->laps[(i == no_of_elements - 1) ? no_of_elements -1 : i + 1]->lap_time_ms;
-        int lapNo = lap_data->laps[i]->lap_no;
-        
-        //ESP_LOGI(TAG_MAIN, "Current Array Index [%d], Mod Index [%d] Control Index [%d]", i, i%MAX_LAPS, control_index);
-        //ESP_LOGI(TAG_MAIN, "Time [%"PRId64"], diff [%"PRId64"], lapNo [%d]", time_in_ms, diff_in_ms, lapNo);
 
+        int64_t time_in_ms = lap_data->laps[i]->lap_time_ms;
+        int64_t diff_in_ms = time_in_ms - lap_data->laps[(i == last_index - 1) ? last_index -1 : i + 1]->lap_time_ms;
+        int lapNo = lap_data->laps[i]->lap_no;
         long checksum = time_in_ms + diff_in_ms + lapNo;
-        if(checksum == checksums[control_index%4]) {
+        if(checksum == checksums[control_index]) {
             continue;
         }
-        checksums[control_index%4] = checksum;
+        checksums[control_index] = checksum;
         if (diff_in_ms > 99990) {
             diff_in_ms = 99990;
         }
