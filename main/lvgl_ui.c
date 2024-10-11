@@ -17,10 +17,10 @@ lv_obj_t* stint_rem_desc_obj;
 lv_obj_t* lap_timer_desc_obj;
 lv_obj_t* radio_desc_obj;
 lv_obj_t* oil_obj;
-lv_obj_t* h2o_obj;
+lv_obj_t* gps_obj;
 lv_obj_t* gas_obj;
 lv_obj_t* oil_desc_obj;
-lv_obj_t* h2o_desc_obj;
+lv_obj_t* gps_desc_obj;
 lv_obj_t* gas_desc_obj;
 
 lv_obj_t* main_laps_obj;
@@ -34,7 +34,8 @@ lv_obj_t* ll_time_diff;
 
 lv_obj_t* radio_last_message;
 lv_obj_t* radio_last_message_time_ago;
-lv_obj_t* h2o_temp_message;
+lv_obj_t* gps_spd_message;
+lv_obj_t* gps_coord_message;
 lv_obj_t* oil_temp_message;
 lv_obj_t* oil_pres_message;
 lv_obj_t* gas_pres_message; 
@@ -110,11 +111,11 @@ void create_desc_containers_right(lv_obj_t* screen) {
     lv_obj_move_background(oil_desc_obj);
     apply_styling(oil_desc_obj, LV_BORDER_SIDE_LEFT);
 
-    h2o_desc_obj = lv_obj_create(screen);
-    lv_obj_set_size(h2o_desc_obj, DESC_WIDTH, HEIGHT - 2 * 160 + 2 * BORDER_SIZE);
-    lv_obj_align_to(h2o_desc_obj, h2o_obj, LV_ALIGN_OUT_LEFT_MID, 7, 0);
-    lv_obj_move_background(h2o_desc_obj);
-    apply_styling(h2o_desc_obj, LV_BORDER_SIDE_LEFT);
+    gps_desc_obj = lv_obj_create(screen);
+    lv_obj_set_size(gps_desc_obj, DESC_WIDTH, HEIGHT - 2 * 160 + 2 * BORDER_SIZE);
+    lv_obj_align_to(gps_desc_obj, gps_obj, LV_ALIGN_OUT_LEFT_MID, 7, 0);
+    lv_obj_move_background(gps_desc_obj);
+    apply_styling(gps_desc_obj, LV_BORDER_SIDE_LEFT);
 
     gas_desc_obj = lv_obj_create(screen);
     lv_obj_set_size(gas_desc_obj, DESC_WIDTH, 160);
@@ -123,7 +124,7 @@ void create_desc_containers_right(lv_obj_t* screen) {
     apply_styling(gas_desc_obj, LV_BORDER_SIDE_LEFT);
 
     lv_obj_set_style_bg_color(oil_desc_obj, lv_desc_bg(), 0);
-    lv_obj_set_style_bg_color(h2o_desc_obj, lv_desc_bg(), 0);
+    lv_obj_set_style_bg_color(gps_desc_obj, lv_desc_bg(), 0);
     lv_obj_set_style_bg_color(gas_desc_obj, lv_desc_bg(), 0);
 }
 
@@ -137,9 +138,9 @@ void create_desc_labels_right(lv_obj_t* screen) {
     lv_obj_align(oil_desc_lbl, LV_ALIGN_CENTER, -2, 0);
 
 
-    lv_obj_t* h2o_desc_lbl = lv_label_create(h2o_desc_obj);
+    lv_obj_t* h2o_desc_lbl = lv_label_create(gps_desc_obj);
     lv_obj_add_style(h2o_desc_lbl, &style, 0);
-    lv_label_set_text(h2o_desc_lbl, "H\n2\nO");
+    lv_label_set_text(h2o_desc_lbl, "G\nP\nS");
     lv_obj_set_style_text_color(h2o_desc_lbl, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_font(h2o_desc_lbl, &lv_immono_20, 0);
     lv_obj_set_style_text_align(h2o_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
@@ -235,22 +236,28 @@ void create_radio_timer(lv_obj_t* screen) {
 
 
 void create_h2o_status(lv_obj_t* screen) {
-    h2o_obj = lv_obj_create(screen);
-    lv_obj_set_size(h2o_obj, COL_WIDTH, 160 + 2 * BORDER_SIZE);
-    lv_obj_set_pos(h2o_obj, WIDTH-COL_WIDTH, 160 - BORDER_SIZE);
-    apply_styling(h2o_obj, LV_BORDER_SIDE_LEFT);
+    gps_obj = lv_obj_create(screen);
+    lv_obj_set_size(gps_obj, COL_WIDTH, 160 + 2 * BORDER_SIZE);
+    lv_obj_set_pos(gps_obj, WIDTH-COL_WIDTH, 160 - BORDER_SIZE);
+    apply_styling(gps_obj, LV_BORDER_SIDE_LEFT);
 
-    h2o_temp_message = lv_label_create(h2o_obj);
-    lv_obj_set_style_text_font(h2o_temp_message, &lv_immono_48, 0);
-    lv_label_set_text(h2o_temp_message, "90");
-    lv_obj_set_style_text_color(h2o_temp_message, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(h2o_temp_message, LV_ALIGN_LEFT_MID, 0, 0);
+    gps_spd_message = lv_label_create(gps_obj);
+    lv_obj_set_style_text_font(gps_spd_message, &lv_immono_48, 0);
+    lv_label_set_text(gps_spd_message, "140");
+    lv_obj_set_style_text_color(gps_spd_message, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(gps_spd_message, LV_ALIGN_TOP_LEFT, 0, 0);
 
-    lv_obj_t* h2o_temp_currency = lv_label_create(h2o_obj);
+    lv_obj_t* h2o_temp_currency = lv_label_create(gps_obj);
     lv_obj_set_style_text_font(h2o_temp_currency, &lv_immono_20, 0);
-    lv_label_set_text(h2o_temp_currency, "°C");
+    lv_label_set_text(h2o_temp_currency, "kmh");
     lv_obj_set_style_text_color(h2o_temp_currency, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(h2o_temp_currency, LV_ALIGN_RIGHT_MID, 0, 0);
+    lv_obj_align(h2o_temp_currency, LV_ALIGN_TOP_RIGHT, 0, 0);
+
+    gps_coord_message = lv_label_create(gps_obj);
+    lv_obj_set_style_text_font(gps_coord_message, &lv_immono_28, 0);
+    lv_label_set_text(gps_coord_message, "50.323|23.234");
+    lv_obj_set_style_text_color(gps_coord_message, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(gps_coord_message, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }
 
 
@@ -472,8 +479,6 @@ void lvgl_set_last_laps_main(uint64_t time_offset, ProtoLapData* lap_data) {
         size_t last_index = lap_data->n_laps > 5 ? 5 : lap_data->n_laps;
     #endif
     
-    
-    ESP_LOGI(TAG_MAIN, "Last idx %d, %d", lap_data->n_laps, last_index);
     for (int i = 0; i < last_index; i ++) {
         control_index++;
 
@@ -585,20 +590,14 @@ void lvgl_set_temperatures(ProtoMcuData* data) {
         }
     
     }
-    
-    if(prev_water_checksum != data->water->temp) {
-        prev_water_checksum = data->water->temp;
-        lv_label_set_text_fmt(h2o_temp_message, "%"PRIu32, data->water->temp);
-        if (get_water_warn().temp <  data->water->temp) {
-            draw_as_critical(h2o_obj, h2o_temp_message);
-        } else {
-            draw_as_normal(h2o_obj, h2o_temp_message);
-        }
-    }
-    
+
     if(prev_gas_checksum != data->gas->preassure) {
         prev_gas_checksum = data->gas->preassure;
-        sprintf(temp, "%0.1f", data->gas->preassure);
+        if(data->gas->preassure > 99 || data->gas->preassure < 0) {
+            sprintf(temp, "%0.1f", 0.0);
+        } else {
+            sprintf(temp, "%0.1f", data->gas->preassure);
+        }
         lv_label_set_text(gas_pres_message, temp);    
     }
 }
@@ -612,11 +611,29 @@ char* type_to_string(ProtoCommandType type) {
     }
 }
 
-int i = 0; 
+double prev_checksum = -1.0;
+void lvgl_set_gps(ProtoGpsData* data) {
+    double checksum = data->spd + data->lat + data->lon;
+    if (checksum != prev_checksum) {
+        prev_checksum = checksum;
+        char tmp[15];
+        sprintf(tmp, "%3.3f\n%3.3f", data->lat, data->lon);
+        lv_label_set_text_fmt(gps_spd_message, "%"PRId32, data->spd);
+        lv_label_set_text(gps_coord_message, tmp);
+    }
+}
+
+int run = 0; 
 long last_comms_checksum = -1;
 void lvgl_set_last_comms(long timestamp_adjustment, ProtoMcuData* data) {
     ProtoCommand* newest = NULL;
+    if (run++%100 == 0) {
+        //ESP_LOGI(TAG_MAIN, "no_of_incomming_commands %d", data->n_incoming_commands);
+    }
     for (int i = 0; i < data->n_incoming_commands; i++) {
+        if (run%100 == 0) {
+     //       ESP_LOGI(TAG_MAIN, "Type: %d, Created %"PRId64, data->incoming_commands[i]->type, data->incoming_commands[i]->created);
+        }
         if(data->incoming_commands[i]->created > 0 && (newest == NULL || data->incoming_commands[i]->created > newest->created)) {
             newest = data->incoming_commands[i];
         }
@@ -628,8 +645,8 @@ void lvgl_set_last_comms(long timestamp_adjustment, ProtoMcuData* data) {
     long time_since_in_ms = esp_timer_get_time()/1000 - newest->created - timestamp_adjustment;
     struct time_str time_since = convert_millis_to_time(time_since_in_ms);
 
-    if (i++%100 == 0) {
-        //ESP_LOGI(TAG_MAIN, "message since in ms: [%ld], min [%d]", time_since_in_ms, time_since.minutes);
+    if (run%100 == 0) {
+      //  ESP_LOGI(TAG_MAIN, "message since in ms: [%ld], min [%d]", time_since_in_ms, time_since.minutes);
     }
 
     long checksum = time_since.minutes + newest->created;
@@ -658,6 +675,7 @@ void lvgl_update_data() {
         lvgl_set_last_laps_main(data->network_time_adjustment, data->lap_data);
         lvgl_set_last_comms(data->network_time_adjustment, data);
         lvgl_set_temperatures(data);
+        lvgl_set_gps(data->gps);
         if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
             lvgl_set_events(data, main_events_obj, main_events_label);
         }

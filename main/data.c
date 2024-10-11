@@ -6,6 +6,8 @@
 #include <freertos/timers.h>
 #include <esp_log.h>
 
+static char* DATA_TAG = "data";
+
 ProtoCarSensor oil_warn = PROTO__CAR__SENSOR__INIT;
 ProtoCarSensor water_warn = PROTO__CAR__SENSOR__INIT;
 
@@ -76,7 +78,21 @@ SemaphoreHandle_t get_mutex() {
     return xSemaphore;
 }
 
+void print_data(ProtoMcuData* proto_data) {
+    ESP_LOGI(DATA_TAG, "incoming events: %d", proto_data->n_incoming_commands);
+    for (int i = 0; i < proto_data->n_incoming_commands; i++) {
+        ESP_LOGI(DATA_TAG, "Event %d, Id: %"PRId32", Type: %d, Created %"PRId64", hasHandled: %d Handled %"PRId64, 
+            i, 
+            proto_data->incoming_commands[i]->id, 
+            proto_data->incoming_commands[i]->type, 
+            proto_data->incoming_commands[i]->created, 
+            proto_data->incoming_commands[i]->has_handled,
+            proto_data->incoming_commands[i]->handled);
+    }
+}
+
 void set_data(ProtoMcuData* proto_data) {
     data = proto_data;
     data_age = esp_timer_get_time() / 1000;
+    print_data(proto_data);
 }

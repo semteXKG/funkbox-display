@@ -277,6 +277,51 @@ void   proto__lap__data__free_unpacked
   assert(message->base.descriptor == &proto__lap__data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   proto__gps__data__init
+                     (ProtoGpsData         *message)
+{
+  static const ProtoGpsData init_value = PROTO__GPS__DATA__INIT;
+  *message = init_value;
+}
+size_t proto__gps__data__get_packed_size
+                     (const ProtoGpsData *message)
+{
+  assert(message->base.descriptor == &proto__gps__data__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t proto__gps__data__pack
+                     (const ProtoGpsData *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &proto__gps__data__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t proto__gps__data__pack_to_buffer
+                     (const ProtoGpsData *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &proto__gps__data__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+ProtoGpsData *
+       proto__gps__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (ProtoGpsData *)
+     protobuf_c_message_unpack (&proto__gps__data__descriptor,
+                                allocator, len, data);
+}
+void   proto__gps__data__free_unpacked
+                     (ProtoGpsData *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &proto__gps__data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   proto__mcu__data__init
                      (ProtoMcuData         *message)
 {
@@ -966,7 +1011,71 @@ const ProtobufCMessageDescriptor proto__lap__data__descriptor =
   (ProtobufCMessageInit) proto__lap__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[10] =
+static const ProtobufCFieldDescriptor proto__gps__data__field_descriptors[3] =
+{
+  {
+    "spd",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    offsetof(ProtoGpsData, has_spd),
+    offsetof(ProtoGpsData, spd),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "lat",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_DOUBLE,
+    offsetof(ProtoGpsData, has_lat),
+    offsetof(ProtoGpsData, lat),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "lon",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_DOUBLE,
+    offsetof(ProtoGpsData, has_lon),
+    offsetof(ProtoGpsData, lon),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned proto__gps__data__field_indices_by_name[] = {
+  1,   /* field[1] = lat */
+  2,   /* field[2] = lon */
+  0,   /* field[0] = spd */
+};
+static const ProtobufCIntRange proto__gps__data__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor proto__gps__data__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Proto_Gps_Data",
+  "ProtoGpsData",
+  "ProtoGpsData",
+  "",
+  sizeof(ProtoGpsData),
+  3,
+  proto__gps__data__field_descriptors,
+  proto__gps__data__field_indices_by_name,
+  1,  proto__gps__data__number_ranges,
+  (ProtobufCMessageInit) proto__gps__data__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[11] =
 {
   {
     "network_time_adjustment",
@@ -1088,10 +1197,23 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[10] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "gps",
+    11,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMcuData, gps),
+    &proto__gps__data__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__mcu__data__field_indices_by_name[] = {
   7,   /* field[7] = events */
   4,   /* field[4] = gas */
+  10,   /* field[10] = gps */
   9,   /* field[9] = incoming_commands */
   6,   /* field[6] = lap_data */
   0,   /* field[0] = network_time_adjustment */
@@ -1104,7 +1226,7 @@ static const unsigned proto__mcu__data__field_indices_by_name[] = {
 static const ProtobufCIntRange proto__mcu__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 10 }
+  { 0, 11 }
 };
 const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
 {
@@ -1114,14 +1236,14 @@ const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
   "ProtoMcuData",
   "",
   sizeof(ProtoMcuData),
-  10,
+  11,
   proto__mcu__data__field_descriptors,
   proto__mcu__data__field_indices_by_name,
   1,  proto__mcu__data__number_ranges,
   (ProtobufCMessageInit) proto__mcu__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__update__data__field_descriptors[5] =
+static const ProtobufCFieldDescriptor proto__update__data__field_descriptors[6] =
 {
   {
     "water_sensor",
@@ -1183,9 +1305,22 @@ static const ProtobufCFieldDescriptor proto__update__data__field_descriptors[5] 
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "gps_data",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoUpdateData, gps_data),
+    &proto__gps__data__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__update__data__field_indices_by_name[] = {
   2,   /* field[2] = gas_sensor */
+  5,   /* field[5] = gps_data */
   3,   /* field[3] = lap_data */
   1,   /* field[1] = oil_sensor */
   4,   /* field[4] = stint_data */
@@ -1194,7 +1329,7 @@ static const unsigned proto__update__data__field_indices_by_name[] = {
 static const ProtobufCIntRange proto__update__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 6 }
 };
 const ProtobufCMessageDescriptor proto__update__data__descriptor =
 {
@@ -1204,7 +1339,7 @@ const ProtobufCMessageDescriptor proto__update__data__descriptor =
   "ProtoUpdateData",
   "",
   sizeof(ProtoUpdateData),
-  5,
+  6,
   proto__update__data__field_descriptors,
   proto__update__data__field_indices_by_name,
   1,  proto__update__data__number_ranges,
@@ -1278,12 +1413,12 @@ static const ProtobufCFieldDescriptor proto__lo_ra__data__field_descriptors[6] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "timestamp",
+    "send_timestamp",
     3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_UINT32,
-    offsetof(ProtoLoRaData, has_timestamp),
-    offsetof(ProtoLoRaData, timestamp),
+    offsetof(ProtoLoRaData, has_send_timestamp),
+    offsetof(ProtoLoRaData, send_timestamp),
     NULL,
     NULL,
     0,             /* flags */
@@ -1330,8 +1465,8 @@ static const unsigned proto__lo_ra__data__field_indices_by_name[] = {
   5,   /* field[5] = ack_data */
   4,   /* field[4] = command_data */
   1,   /* field[1] = requires_ack */
+  2,   /* field[2] = send_timestamp */
   0,   /* field[0] = seq_nr */
-  2,   /* field[2] = timestamp */
   3,   /* field[3] = update_data */
 };
 static const ProtobufCIntRange proto__lo_ra__data__number_ranges[1 + 1] =
@@ -1354,7 +1489,7 @@ const ProtobufCMessageDescriptor proto__lo_ra__data__descriptor =
   (ProtobufCMessageInit) proto__lo_ra__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__message__field_descriptors[2] =
+static const ProtobufCFieldDescriptor proto__message__field_descriptors[3] =
 {
   {
     "mcu_data",
@@ -1380,15 +1515,28 @@ static const ProtobufCFieldDescriptor proto__message__field_descriptors[2] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "command_data",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMessage, command_data),
+    &proto__command__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__message__field_indices_by_name[] = {
+  2,   /* field[2] = command_data */
   1,   /* field[1] = lora_data */
   0,   /* field[0] = mcu_data */
 };
 static const ProtobufCIntRange proto__message__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor proto__message__descriptor =
 {
@@ -1398,7 +1546,7 @@ const ProtobufCMessageDescriptor proto__message__descriptor =
   "ProtoMessage",
   "",
   sizeof(ProtoMessage),
-  2,
+  3,
   proto__message__field_descriptors,
   proto__message__field_indices_by_name,
   1,  proto__message__number_ranges,

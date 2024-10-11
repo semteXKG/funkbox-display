@@ -21,6 +21,7 @@ typedef struct _ProtoCarSensor ProtoCarSensor;
 typedef struct _ProtoStintData ProtoStintData;
 typedef struct _ProtoLap ProtoLap;
 typedef struct _ProtoLapData ProtoLapData;
+typedef struct _ProtoGpsData ProtoGpsData;
 typedef struct _ProtoMcuData ProtoMcuData;
 typedef struct _ProtoUpdateData ProtoUpdateData;
 typedef struct _ProtoAckData ProtoAckData;
@@ -168,6 +169,21 @@ struct  _ProtoLapData
     , 0, 0, 0, 0, 0, 0, 0, 0, 0,NULL }
 
 
+struct  _ProtoGpsData
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_spd;
+  int32_t spd;
+  protobuf_c_boolean has_lat;
+  double lat;
+  protobuf_c_boolean has_lon;
+  double lon;
+};
+#define PROTO__GPS__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__gps__data__descriptor) \
+    , 0, 0, 0, 0, 0, 0 }
+
+
 struct  _ProtoMcuData
 {
   ProtobufCMessage base;
@@ -186,10 +202,11 @@ struct  _ProtoMcuData
   ProtoCommand **outgoing_commands;
   size_t n_incoming_commands;
   ProtoCommand **incoming_commands;
+  ProtoGpsData *gps;
 };
 #define PROTO__MCU__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__mcu__data__descriptor) \
-    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL }
+    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL, NULL }
 
 
 struct  _ProtoUpdateData
@@ -200,10 +217,11 @@ struct  _ProtoUpdateData
   ProtoCarSensor *gas_sensor;
   ProtoLapData *lap_data;
   ProtoStintData *stint_data;
+  ProtoGpsData *gps_data;
 };
 #define PROTO__UPDATE__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__update__data__descriptor) \
-    , NULL, NULL, NULL, NULL, NULL }
+    , NULL, NULL, NULL, NULL, NULL, NULL }
 
 
 struct  _ProtoAckData
@@ -224,8 +242,8 @@ struct  _ProtoLoRaData
   uint32_t seq_nr;
   protobuf_c_boolean has_requires_ack;
   protobuf_c_boolean requires_ack;
-  protobuf_c_boolean has_timestamp;
-  uint32_t timestamp;
+  protobuf_c_boolean has_send_timestamp;
+  uint32_t send_timestamp;
   ProtoUpdateData *update_data;
   ProtoCommand *command_data;
   ProtoAckData *ack_data;
@@ -240,10 +258,11 @@ struct  _ProtoMessage
   ProtobufCMessage base;
   ProtoMcuData *mcu_data;
   ProtoLoRaData *lora_data;
+  ProtoCommand *command_data;
 };
 #define PROTO__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__message__descriptor) \
-    , NULL, NULL }
+    , NULL, NULL, NULL }
 
 
 /* ProtoEvent methods */
@@ -360,6 +379,25 @@ ProtoLapData *
 void   proto__lap__data__free_unpacked
                      (ProtoLapData *message,
                       ProtobufCAllocator *allocator);
+/* ProtoGpsData methods */
+void   proto__gps__data__init
+                     (ProtoGpsData         *message);
+size_t proto__gps__data__get_packed_size
+                     (const ProtoGpsData   *message);
+size_t proto__gps__data__pack
+                     (const ProtoGpsData   *message,
+                      uint8_t             *out);
+size_t proto__gps__data__pack_to_buffer
+                     (const ProtoGpsData   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoGpsData *
+       proto__gps__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__gps__data__free_unpacked
+                     (ProtoGpsData *message,
+                      ProtobufCAllocator *allocator);
 /* ProtoMcuData methods */
 void   proto__mcu__data__init
                      (ProtoMcuData         *message);
@@ -475,6 +513,9 @@ typedef void (*ProtoLap_Closure)
 typedef void (*ProtoLapData_Closure)
                  (const ProtoLapData *message,
                   void *closure_data);
+typedef void (*ProtoGpsData_Closure)
+                 (const ProtoGpsData *message,
+                  void *closure_data);
 typedef void (*ProtoMcuData_Closure)
                  (const ProtoMcuData *message,
                   void *closure_data);
@@ -506,6 +547,7 @@ extern const ProtobufCMessageDescriptor proto__car__sensor__descriptor;
 extern const ProtobufCMessageDescriptor proto__stint__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__lap__descriptor;
 extern const ProtobufCMessageDescriptor proto__lap__data__descriptor;
+extern const ProtobufCMessageDescriptor proto__gps__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__mcu__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__update__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__ack__data__descriptor;

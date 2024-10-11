@@ -3,7 +3,6 @@
 static const char* COMMAND_TAG = "command";
 
 ProtoCommand* find_first_active(ProtoMcuData* data) {  
-    //ESP_LOGI(EVENT_TAG, "IDX: %d", data->incoming_commands_last_idx);
     for (int i = 0; i < data->n_incoming_commands; i++) {
         if (!data->incoming_commands[i]->has_handled) {
             return data->incoming_commands[i];
@@ -13,15 +12,31 @@ ProtoCommand* find_first_active(ProtoMcuData* data) {
 }
 
 bool currently_viewing = false;
-ProtoCommand current_item;
+ProtoCommand current_item; 
 int blink_timestamp = 0;
+int lsc_cnt = 0;
 bool lvgl_set_commands(ProtoMcuData* data, lv_obj_t* object, lv_obj_t* label) {
     if (currently_viewing) {
+        if(lsc_cnt++%100 == 0) {
+            ESP_LOGI(COMMAND_TAG, "still viewing");
+        }
+
+        bool element_found = false;
+        bool reset_data = false;
+
         for (int i = 0 ; i < data->n_incoming_commands; i++) {
-            if(data->incoming_commands[i]->id == current_item.id && data->incoming_commands[i]->has_handled) {
-                currently_viewing = false;
-                lv_obj_move_background(object);
+            if(data->incoming_commands[i]->id == current_item.id) {
+                element_found = true;
+                if (data->incoming_commands[i]->has_handled) {
+                    reset_data = true;
+                }
             }
+        }
+
+        if(!element_found || reset_data) {
+            ESP_LOGI(COMMAND_TAG, "RESETTING");
+            currently_viewing = false;
+            lv_obj_move_background(object);
         }
     }
    
@@ -39,11 +54,18 @@ bool lvgl_set_commands(ProtoMcuData* data, lv_obj_t* object, lv_obj_t* label) {
     }
 
     ProtoCommand* first_active = find_first_active(data);
+    
     if (first_active == NULL) {
         return false;
     }
     
-    current_item = *first_active;
+    current_item.id = first_active->id;
+    current_item.has_id = true;
+    current_item.created = first_active->created;
+    current_item.has_created = true;
+    current_item.type = first_active->type;
+    current_item.has_type = true;
+
     currently_viewing = true;      
     lv_obj_move_foreground(object);
     switch (current_item.type) {
