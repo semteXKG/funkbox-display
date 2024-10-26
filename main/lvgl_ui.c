@@ -520,7 +520,7 @@ void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t el
     if(elapsed < last_elapsed && time_adjust < 1000) {
         return;
     }
-    long checksum = enabled + running + target + (elapsed + time_adjust);
+    long checksum = enabled + running + target + (elapsed + time_adjust) / 1000;
     if (checksum == stint_timer_checksum) {
         return;
     }
@@ -575,20 +575,20 @@ void lvgl_set_temperatures(ProtoMcuData* data) {
     if (data->oil == NULL || data->water == NULL || data->gas == NULL) {
         return;
     }
+    
     double checksum = data->oil->temp + data->oil->preassure;
     if(checksum != prev_oil_checksum) {
         prev_oil_checksum = checksum;
         sprintf(temp, "%0.1f", data->oil->preassure);
         lv_label_set_text_fmt(oil_pres_message, temp);    
         lv_label_set_text_fmt(oil_temp_message, "%"PRIu32, data->oil->temp);
-        if(get_oil_warn().preassure > data->oil->preassure || get_oil_warn().temp < data->oil->temp) {
+        if(data->oil->preassure < data->oil_warn->preassure || data->oil->temp > data->oil_warn->temp) {
             draw_as_critical(oil_obj, oil_temp_message);
             draw_as_critical(oil_obj, oil_pres_message);
         } else {
             draw_as_normal(oil_obj, oil_temp_message);
             draw_as_normal(oil_obj, oil_pres_message);
-        }
-    
+        }    
     }
 
     if(prev_gas_checksum != data->gas->preassure) {
@@ -598,7 +598,13 @@ void lvgl_set_temperatures(ProtoMcuData* data) {
         } else {
             sprintf(temp, "%0.1f", data->gas->preassure);
         }
-        lv_label_set_text(gas_pres_message, temp);    
+        lv_label_set_text(gas_pres_message, temp); 
+
+        if(data->gas->preassure < data->gas_warn->preassure) {
+            draw_as_critical(gas_obj, gas_pres_message);
+        } else {
+            draw_as_normal(gas_obj, gas_pres_message);
+        }
     }
 }
 
@@ -616,8 +622,8 @@ void lvgl_set_gps(ProtoGpsData* data) {
     double checksum = data->spd + data->lat + data->lon;
     if (checksum != prev_checksum) {
         prev_checksum = checksum;
-        char tmp[15];
-        sprintf(tmp, "%3.3f\n%3.3f", data->lat, data->lon);
+        char tmp[20];
+        sprintf(tmp, "%3.6f\n%3.6f", data->lat, data->lon);
         lv_label_set_text_fmt(gps_spd_message, "%"PRId32, data->spd);
         lv_label_set_text(gps_coord_message, tmp);
     }

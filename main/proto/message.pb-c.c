@@ -1075,7 +1075,7 @@ const ProtobufCMessageDescriptor proto__gps__data__descriptor =
   (ProtobufCMessageInit) proto__gps__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[11] =
+static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[13] =
 {
   {
     "network_time_adjustment",
@@ -1209,15 +1209,41 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[11] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "gas_warn",
+    12,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMcuData, gas_warn),
+    &proto__car__sensor__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "oil_warn",
+    13,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMcuData, oil_warn),
+    &proto__car__sensor__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__mcu__data__field_indices_by_name[] = {
   7,   /* field[7] = events */
   4,   /* field[4] = gas */
+  11,   /* field[11] = gas_warn */
   10,   /* field[10] = gps */
   9,   /* field[9] = incoming_commands */
   6,   /* field[6] = lap_data */
   0,   /* field[0] = network_time_adjustment */
   3,   /* field[3] = oil */
+  12,   /* field[12] = oil_warn */
   8,   /* field[8] = outgoing_commands */
   1,   /* field[1] = send_timestamp */
   5,   /* field[5] = stint */
@@ -1226,7 +1252,7 @@ static const unsigned proto__mcu__data__field_indices_by_name[] = {
 static const ProtobufCIntRange proto__mcu__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 11 }
+  { 0, 13 }
 };
 const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
 {
@@ -1236,7 +1262,7 @@ const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
   "ProtoMcuData",
   "",
   sizeof(ProtoMcuData),
-  11,
+  13,
   proto__mcu__data__field_descriptors,
   proto__mcu__data__field_indices_by_name,
   1,  proto__mcu__data__number_ranges,

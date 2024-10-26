@@ -203,10 +203,12 @@ struct  _ProtoMcuData
   size_t n_incoming_commands;
   ProtoCommand **incoming_commands;
   ProtoGpsData *gps;
+  ProtoCarSensor *gas_warn;
+  ProtoCarSensor *oil_warn;
 };
 #define PROTO__MCU__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__mcu__data__descriptor) \
-    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL, NULL }
+    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL, NULL, NULL, NULL }
 
 
 struct  _ProtoUpdateData
