@@ -79,7 +79,6 @@ SemaphoreHandle_t get_mutex() {
 }
 
 void print_data(ProtoMcuData* proto_data) {
-    ESP_LOGI(DATA_TAG, "incoming events: %d", proto_data->n_incoming_commands);
     for (int i = 0; i < proto_data->n_incoming_commands; i++) {
         ESP_LOGI(DATA_TAG, "Event %d, Id: %"PRId32", Type: %d, Created %"PRId64", hasHandled: %d Handled %"PRId64, 
             i, 
@@ -94,5 +93,5 @@ void print_data(ProtoMcuData* proto_data) {
 void set_data(ProtoMcuData* proto_data) {
     data = proto_data;
     data_age = esp_timer_get_time() / 1000;
-    print_data(proto_data);
+//    print_data(proto_data);
 }

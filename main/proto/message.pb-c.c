@@ -322,6 +322,51 @@ void   proto__gps__data__free_unpacked
   assert(message->base.descriptor == &proto__gps__data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   proto__lora__config__init
+                     (ProtoLoraConfig         *message)
+{
+  static const ProtoLoraConfig init_value = PROTO__LORA__CONFIG__INIT;
+  *message = init_value;
+}
+size_t proto__lora__config__get_packed_size
+                     (const ProtoLoraConfig *message)
+{
+  assert(message->base.descriptor == &proto__lora__config__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t proto__lora__config__pack
+                     (const ProtoLoraConfig *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &proto__lora__config__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t proto__lora__config__pack_to_buffer
+                     (const ProtoLoraConfig *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &proto__lora__config__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+ProtoLoraConfig *
+       proto__lora__config__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (ProtoLoraConfig *)
+     protobuf_c_message_unpack (&proto__lora__config__descriptor,
+                                allocator, len, data);
+}
+void   proto__lora__config__free_unpacked
+                     (ProtoLoraConfig *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &proto__lora__config__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   proto__mcu__data__init
                      (ProtoMcuData         *message)
 {
@@ -1075,7 +1120,71 @@ const ProtobufCMessageDescriptor proto__gps__data__descriptor =
   (ProtobufCMessageInit) proto__gps__data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[13] =
+static const ProtobufCFieldDescriptor proto__lora__config__field_descriptors[3] =
+{
+  {
+    "bandwidth",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_DOUBLE,
+    offsetof(ProtoLoraConfig, has_bandwidth),
+    offsetof(ProtoLoraConfig, bandwidth),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "spreading_factor",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(ProtoLoraConfig, has_spreading_factor),
+    offsetof(ProtoLoraConfig, spreading_factor),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "output_power",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    offsetof(ProtoLoraConfig, has_output_power),
+    offsetof(ProtoLoraConfig, output_power),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned proto__lora__config__field_indices_by_name[] = {
+  0,   /* field[0] = bandwidth */
+  2,   /* field[2] = output_power */
+  1,   /* field[1] = spreading_factor */
+};
+static const ProtobufCIntRange proto__lora__config__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor proto__lora__config__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Proto_Lora_Config",
+  "ProtoLoraConfig",
+  "ProtoLoraConfig",
+  "",
+  sizeof(ProtoLoraConfig),
+  3,
+  proto__lora__config__field_descriptors,
+  proto__lora__config__field_indices_by_name,
+  1,  proto__lora__config__number_ranges,
+  (ProtobufCMessageInit) proto__lora__config__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[14] =
 {
   {
     "network_time_adjustment",
@@ -1233,6 +1342,18 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[13] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "lora_config",
+    14,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(ProtoMcuData, lora_config),
+    &proto__lora__config__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__mcu__data__field_indices_by_name[] = {
   7,   /* field[7] = events */
@@ -1241,6 +1362,7 @@ static const unsigned proto__mcu__data__field_indices_by_name[] = {
   10,   /* field[10] = gps */
   9,   /* field[9] = incoming_commands */
   6,   /* field[6] = lap_data */
+  13,   /* field[13] = lora_config */
   0,   /* field[0] = network_time_adjustment */
   3,   /* field[3] = oil */
   12,   /* field[12] = oil_warn */
@@ -1252,7 +1374,7 @@ static const unsigned proto__mcu__data__field_indices_by_name[] = {
 static const ProtobufCIntRange proto__mcu__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 13 }
+  { 0, 14 }
 };
 const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
 {
@@ -1262,7 +1384,7 @@ const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
   "ProtoMcuData",
   "",
   sizeof(ProtoMcuData),
-  13,
+  14,
   proto__mcu__data__field_descriptors,
   proto__mcu__data__field_indices_by_name,
   1,  proto__mcu__data__number_ranges,
