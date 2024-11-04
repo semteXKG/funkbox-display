@@ -15,11 +15,16 @@ struct time_str {
 
 ProtoCarSensor get_oil_warn();
 ProtoCarSensor get_water_warn();
-SemaphoreHandle_t get_mutex();
+SemaphoreHandle_t get_data_mutex();
+SemaphoreHandle_t get_lora_mutex();
 
 ProtoMcuData* get_data();
 void set_data(ProtoMcuData* proto_data);
 uint32_t get_data_age();
+
+void set_lora_stats(ProtoLoraStats* proto_lora_stats);
+ProtoLoraStats* get_lora_stats();
+uint32_t get_lora_stats_age();
 
 void data_start();
 

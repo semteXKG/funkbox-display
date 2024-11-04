@@ -20,12 +20,16 @@ ProtoCarSensor get_water_warn() {
 }
 
 ProtoMcuData* data = NULL;
+ProtoLoraStats* lora_stats = NULL;
 uint32_t data_age = 0;
+uint32_t lora_stats_age = 0;
 
-SemaphoreHandle_t xSemaphore;
+SemaphoreHandle_t xDataSemaphore;
+SemaphoreHandle_t xLoraSemaphore;
 
 void data_start() {
-    xSemaphore =  xSemaphoreCreateMutex();
+    xDataSemaphore = xSemaphoreCreateMutex();
+    xLoraSemaphore = xSemaphoreCreateMutex();
 }
 
 struct time_str convert_millis_to_time(long millis) {
@@ -74,8 +78,12 @@ uint32_t get_data_age() {
     return data_age;
 }
 
-SemaphoreHandle_t get_mutex() {
-    return xSemaphore;
+SemaphoreHandle_t get_data_mutex() {
+    return xDataSemaphore;
+}
+
+SemaphoreHandle_t get_lora_mutex() {
+    return xLoraSemaphore;
 }
 
 void print_data(ProtoMcuData* proto_data) {
@@ -94,4 +102,17 @@ void set_data(ProtoMcuData* proto_data) {
     data = proto_data;
     data_age = esp_timer_get_time() / 1000;
 //    print_data(proto_data);
+}
+
+void set_lora_stats(ProtoLoraStats* proto_lora_stats) {
+    lora_stats = proto_lora_stats;
+    lora_stats_age = esp_timer_get_time() / 1000;
+}
+
+ProtoLoraStats* get_lora_stats() {
+    return lora_stats;
+}
+
+uint32_t get_lora_stats_age() {
+    return lora_stats_age;
 }

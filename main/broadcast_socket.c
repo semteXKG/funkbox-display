@@ -20,7 +20,7 @@ char* TAG_BC = "broadcast";
 
 bool first_message = true;
 
-ProtoMessage* previous_data = NULL; 
+//ProtoMessage* previous_data = NULL; 
 void parse_proto(void* binary_message, size_t len) {
     ProtoMessage* data = proto__message__unpack(NULL, len, binary_message);
     if (data == NULL) {
@@ -28,24 +28,46 @@ void parse_proto(void* binary_message, size_t len) {
         return; 
     }
 
-    if(data->mcu_data == NULL) {
-        proto__message__free_unpacked(data, NULL);
-        return;
+    if(data->mcu_data != NULL) {
+        int size = proto__mcu__data__get_packed_size(data->mcu_data);
+        uint8_t buffer[size];
+        proto__mcu__data__pack(data->mcu_data, &buffer[0]);
+        ProtoMcuData* new_mcu_data = proto__mcu__data__unpack(NULL, size, &buffer[0]);  
+            
+        if (xSemaphoreTake(get_data_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
+            ESP_LOGI(TAG_BC, "Updating mcu data");
+            if(get_data() != NULL) {
+                proto__mcu__data__free_unpacked(get_data(), NULL);
+            }
+
+            new_mcu_data->network_time_adjustment = new_mcu_data->send_timestamp - esp_timer_get_time() / 1000;
+            set_data(new_mcu_data);
+            xSemaphoreGive(get_data_mutex());
+        } else {
+            ESP_LOGI(TAG_BC, "Could not update data");
+        }
+    }
+
+    if(data->lora_stats != NULL) {
+        ESP_LOGI(TAG_BC, "Updating Lora");
+        if (xSemaphoreTake(get_lora_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
+
+            if (get_lora_stats() != NULL) {
+                proto__lora__stats__free_unpacked(get_lora_stats(), NULL);
+            }
+            int size = proto__lora__stats__get_packed_size(data->lora_stats);
+            uint8_t buffer[size];
+            proto__lora__stats__pack(data->lora_stats, &buffer[0]);
+            ProtoLoraStats* new_lora_stats = proto__lora__stats__unpack(NULL, size, &buffer[0]);  
+            set_lora_stats(new_lora_stats);
+            xSemaphoreGive(get_lora_mutex());
+        } else {
+            ESP_LOGI(TAG_BC, "Could not update Lora");
+        }
     }
     
-    if (xSemaphoreTake(get_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
-        ESP_LOGI(TAG_BC, "Updating mcu data");
-        if(previous_data != NULL) {
-            proto__message__free_unpacked(previous_data, NULL);
-        }
-
-        data->mcu_data->network_time_adjustment = data->mcu_data->send_timestamp - esp_timer_get_time() / 1000;
-        set_data(data->mcu_data);
-        previous_data = data;
-        xSemaphoreGive(get_mutex());
-    } else {
-        ESP_LOGI(TAG_BC, "Could not update data");
-    }
+    proto__message__free_unpacked(data, NULL);
+    return;
 }
 
 /* Add a socket to the IPV4 multicast group */
@@ -208,7 +230,7 @@ void listen_broadcast(void *pvParameters)
                                     raddr_name, sizeof(raddr_name)-1);
                     }
                     ESP_LOGI(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
-                    
+                     
                     parse_proto(recvbuf, len);
                     
                     ESP_LOGI(TAG_BC,"Done");

@@ -96,7 +96,13 @@ void create_lap_timer(lv_obj_t* screen) {
     ll_time_diff = lv_label_create(lap_timer_obj);
     lv_obj_set_style_text_font(ll_time_diff, &lv_immono_40, 0);
     lv_label_set_text(ll_time_diff, "");
+
+    #if PRIMARY
     lv_obj_set_style_text_color(ll_time_diff, lv_color_ok(), LV_PART_MAIN);
+    #else
+    lv_obj_set_style_text_color(ll_time_diff, lv_color_white(), LV_PART_MAIN);
+    #endif
+
     lv_obj_set_style_text_align(ll_time_diff, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(ll_time_diff, LV_ALIGN_BOTTOM_MID, 0, 0);
 
@@ -182,13 +188,19 @@ void create_desc_containers_left(lv_obj_t* screen) {
 void create_desc_labels_left(lv_obj_t* screen) {
     lv_obj_t* pb_desc = lv_label_create(lap_timer_desc_obj);
     lv_obj_add_style(pb_desc, &style, 0);
+    #if PRIMARY
     lv_label_set_text(pb_desc, "P\nB");
+    lv_obj_align(pb_desc, LV_ALIGN_TOP_MID, 2, 0);
+    #else
+    lv_label_set_text(pb_desc, "L\nO\nR\nA");
+    lv_obj_align(pb_desc, LV_ALIGN_CENTER, 2, 0);
+    #endif
     lv_obj_set_style_text_color(pb_desc, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_font(pb_desc, &lv_immono_20, 0);
     lv_obj_set_style_text_align(pb_desc, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(pb_desc, LV_ALIGN_TOP_MID, 2, 0);
 
 
+    #if PRIMARY
     lv_obj_t* ll_desc = lv_label_create(lap_timer_desc_obj);
     lv_obj_add_style(ll_desc, &style, 0);
     lv_label_set_text(ll_desc, "L\nA\nS\nT");
@@ -196,6 +208,7 @@ void create_desc_labels_left(lv_obj_t* screen) {
     lv_obj_set_style_text_font(ll_desc, &lv_immono_20, 0);
     lv_obj_set_style_text_align(ll_desc, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(ll_desc, LV_ALIGN_CENTER, 2, 25);
+    #endif
 
 
    lv_obj_t* box_descr = lv_label_create(stint_rem_desc_obj);
@@ -425,6 +438,25 @@ void lvgl_draw_main_ui(lv_disp_t *disp)
     lv_style_set_pad_all(&style_padding, 0);
 
     create_content(screen);
+}
+
+double checksum = -1; 
+void lvgl_set_lora_stats(ProtoLoraStats* stats) {
+    int time = (int)((esp_timer_get_time() / 1000) - get_lora_stats_age()) / 1000;
+    double check = stats->rssi + stats->snr + time;
+    if(check == checksum) {
+        return;
+    }
+    
+    checksum = check;
+    char fstring[15];
+    sprintf(fstring, "DMP %03.0f", stats->rssi);
+    lv_label_set_text(pb_time, fstring);
+    sprintf(fstring, "SNR %03.0f", stats->snr);
+    lv_label_set_text(ll_time,fstring);
+    sprintf(fstring, "TME %03d", time);
+    lv_label_set_text(ll_time_diff, fstring);
+    
 }
 
 long last_lap_checksum = -1L;
@@ -668,16 +700,20 @@ void lvgl_set_last_comms(long timestamp_adjustment, ProtoMcuData* data) {
 
 void lvgl_update_data() {
     //ESP_LOGI(TAG_MAIN, "UPDATE_START");
-    if (xSemaphoreTake(get_mutex(), pdMS_TO_TICKS(10))) {
+    if (xSemaphoreTake(get_data_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
     //    ESP_LOGI(TAG_MAIN, "SEMAPHORE_TAKEN");
         ProtoMcuData* data = get_data();
         if(data == NULL) {
-            xSemaphoreGive(get_mutex());
+            xSemaphoreGive(get_data_mutex());
             return;
         }
         int32_t time_adjust = data->send_timestamp - data->stint->elapsed_timestamp + (esp_timer_get_time() / 1000 - get_data_age());
         lvgl_set_stint_timer(data->stint->enabled, data->stint->running, data->stint->target, data->stint->elapsed, time_adjust);
-        lvgl_set_last_laps(data->lap_data);
+        
+        #if PRIMARY
+            lvgl_set_last_laps(data->lap_data);
+        #endif
+
         lvgl_set_last_laps_main(data->network_time_adjustment, data->lap_data);
         lvgl_set_last_comms(data->network_time_adjustment, data);
         lvgl_set_temperatures(data);
@@ -686,9 +722,24 @@ void lvgl_update_data() {
             lvgl_set_events(data, main_events_obj, main_events_label);
         }
     //    ESP_LOGI(TAG_MAIN, "SEMAPHORE_GIVEN");
-        xSemaphoreGive(get_mutex());
+        xSemaphoreGive(get_data_mutex());
     } else {
         ESP_LOGI(TAG_MAIN, "Could not update UI");
     }
+
+    #if !PRIMARY
+    if (xSemaphoreTake(get_lora_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
+        ProtoLoraStats* lora_stats = get_lora_stats();
+        if(lora_stats == NULL) {
+            xSemaphoreGive(get_lora_mutex());
+            return;
+        }            
+        lvgl_set_lora_stats(lora_stats);
+        xSemaphoreGive(get_lora_mutex());
+    } else {  
+        ESP_LOGI(TAG_MAIN, "Could not update UI");
+    }
+    #endif
+
     //ESP_LOGI(TAG_MAIN, "UPDATE_END");
 }

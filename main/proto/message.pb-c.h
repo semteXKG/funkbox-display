@@ -23,6 +23,7 @@ typedef struct _ProtoLap ProtoLap;
 typedef struct _ProtoLapData ProtoLapData;
 typedef struct _ProtoGpsData ProtoGpsData;
 typedef struct _ProtoLoraConfig ProtoLoraConfig;
+typedef struct _ProtoLoraStats ProtoLoraStats;
 typedef struct _ProtoMcuData ProtoMcuData;
 typedef struct _ProtoUpdateData ProtoUpdateData;
 typedef struct _ProtoAckData ProtoAckData;
@@ -200,6 +201,21 @@ struct  _ProtoLoraConfig
     , 0, 0, 0, 0, 0, 0 }
 
 
+struct  _ProtoLoraStats
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_rssi;
+  double rssi;
+  protobuf_c_boolean has_snr;
+  double snr;
+  protobuf_c_boolean has_receive_time;
+  int32_t receive_time;
+};
+#define PROTO__LORA__STATS__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__lora__stats__descriptor) \
+    , 0, 0, 0, 0, 0, 0 }
+
+
 struct  _ProtoMcuData
 {
   ProtobufCMessage base;
@@ -278,10 +294,11 @@ struct  _ProtoMessage
   ProtoMcuData *mcu_data;
   ProtoLoRaData *lora_data;
   ProtoCommand *command_data;
+  ProtoLoraStats *lora_stats;
 };
 #define PROTO__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__message__descriptor) \
-    , NULL, NULL, NULL }
+    , NULL, NULL, NULL, NULL }
 
 
 /* ProtoEvent methods */
@@ -436,6 +453,25 @@ ProtoLoraConfig *
 void   proto__lora__config__free_unpacked
                      (ProtoLoraConfig *message,
                       ProtobufCAllocator *allocator);
+/* ProtoLoraStats methods */
+void   proto__lora__stats__init
+                     (ProtoLoraStats         *message);
+size_t proto__lora__stats__get_packed_size
+                     (const ProtoLoraStats   *message);
+size_t proto__lora__stats__pack
+                     (const ProtoLoraStats   *message,
+                      uint8_t             *out);
+size_t proto__lora__stats__pack_to_buffer
+                     (const ProtoLoraStats   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoLoraStats *
+       proto__lora__stats__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__lora__stats__free_unpacked
+                     (ProtoLoraStats *message,
+                      ProtobufCAllocator *allocator);
 /* ProtoMcuData methods */
 void   proto__mcu__data__init
                      (ProtoMcuData         *message);
@@ -557,6 +593,9 @@ typedef void (*ProtoGpsData_Closure)
 typedef void (*ProtoLoraConfig_Closure)
                  (const ProtoLoraConfig *message,
                   void *closure_data);
+typedef void (*ProtoLoraStats_Closure)
+                 (const ProtoLoraStats *message,
+                  void *closure_data);
 typedef void (*ProtoMcuData_Closure)
                  (const ProtoMcuData *message,
                   void *closure_data);
@@ -590,6 +629,7 @@ extern const ProtobufCMessageDescriptor proto__lap__descriptor;
 extern const ProtobufCMessageDescriptor proto__lap__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__gps__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__lora__config__descriptor;
+extern const ProtobufCMessageDescriptor proto__lora__stats__descriptor;
 extern const ProtobufCMessageDescriptor proto__mcu__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__update__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__ack__data__descriptor;
