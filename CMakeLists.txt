@@ -9,4 +9,12 @@ else()
   add_compile_definitions(PRIMARY=0)
 endif()
 
+if(FORD)
+  add_compile_definitions(CONFIG_SSID="funkbox-ford-")
+  add_compile_definitions(CONFIG_PWD="funkbox-ford-pwd-")
+else() 
+  add_compile_definitions(CONFIG_SSID="funkbox-vectra-")
+  add_compile_definitions(CONFIG_PWD="funkbox-vectra-pwd-")
+endif()
+
 project(funkbox-display)

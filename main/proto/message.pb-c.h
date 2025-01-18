@@ -23,7 +23,10 @@ typedef struct _ProtoLap ProtoLap;
 typedef struct _ProtoLapData ProtoLapData;
 typedef struct _ProtoGpsData ProtoGpsData;
 typedef struct _ProtoLoraConfig ProtoLoraConfig;
+typedef struct _ProtoOdb2Data ProtoOdb2Data;
 typedef struct _ProtoLoraStats ProtoLoraStats;
+typedef struct _ProtoShiftlightConfig ProtoShiftlightConfig;
+typedef struct _ProtoButton ProtoButton;
 typedef struct _ProtoMcuData ProtoMcuData;
 typedef struct _ProtoUpdateData ProtoUpdateData;
 typedef struct _ProtoAckData ProtoAckData;
@@ -33,9 +36,6 @@ typedef struct _ProtoMessage ProtoMessage;
 
 /* --- enums --- */
 
-/*
- * https://github.com/protobuf-c/protobuf-c/wiki/Examples#strings
- */
 typedef enum _ProtoSeverity {
   PROTO__SEVERITY__POSITIVE = 1,
   PROTO__SEVERITY__NORMAL = 2,
@@ -54,7 +54,8 @@ typedef enum _ProtoCommandType {
   PROTO__COMMAND__TYPE__COM_NONE = 1,
   PROTO__COMMAND__TYPE__COM_PIT = 2,
   PROTO__COMMAND__TYPE__COM_STINT_OVER = 3,
-  PROTO__COMMAND__TYPE__COM_FCK = 4
+  PROTO__COMMAND__TYPE__COM_FCK = 4,
+  PROTO__COMMAND__TYPE__COM_FUEL = 5
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(PROTO__COMMAND__TYPE)
 } ProtoCommandType;
 typedef enum _ProtoLoraType {
@@ -67,6 +68,24 @@ typedef enum _ProtoLoraType {
   PROTO__LORA__TYPE__LORA_COMMAND = 7
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(PROTO__LORA__TYPE)
 } ProtoLoraType;
+typedef enum _ShiftlightMode {
+  SHIFTLIGHT__MODE__LEFT_RIGHT = 1,
+  SHIFTLIGHT__MODE__BOTH_SIDES = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(SHIFTLIGHT__MODE)
+} ShiftlightMode;
+typedef enum _ButtonName {
+  BUTTON__NAME__PIT = 1,
+  BUTTON__NAME__FUEL = 2,
+  BUTTON__NAME__FCK = 3,
+  BUTTON__NAME__STINT = 4,
+  BUTTON__NAME__ALARM = 5
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(BUTTON__NAME)
+} ButtonName;
+typedef enum _ButtonState {
+  BUTTON__STATE__PRESSED = 1,
+  BUTTON__STATE__DEPRESSED = 2
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(BUTTON__STATE)
+} ButtonState;
 
 /* --- messages --- */
 
@@ -201,6 +220,17 @@ struct  _ProtoLoraConfig
     , 0, 0, 0, 0, 0, 0 }
 
 
+struct  _ProtoOdb2Data
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_rpm;
+  uint32_t rpm;
+};
+#define PROTO__ODB2__DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__odb2__data__descriptor) \
+    , 0, 0 }
+
+
 struct  _ProtoLoraStats
 {
   ProtobufCMessage base;
@@ -214,6 +244,38 @@ struct  _ProtoLoraStats
 #define PROTO__LORA__STATS__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__lora__stats__descriptor) \
     , 0, 0, 0, 0, 0, 0 }
+
+
+struct  _ProtoShiftlightConfig
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_mode;
+  ShiftlightMode mode;
+  protobuf_c_boolean has_rpm_red_flash;
+  int32_t rpm_red_flash;
+  protobuf_c_boolean has_brightness;
+  int32_t brightness;
+  size_t n_rpm_limits;
+  int32_t *rpm_limits;
+};
+#define PROTO__SHIFTLIGHT__CONFIG__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__shiftlight__config__descriptor) \
+    , 0, SHIFTLIGHT__MODE__LEFT_RIGHT, 0, 0, 0, 0, 0,NULL }
+
+
+struct  _ProtoButton
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean has_name;
+  ButtonName name;
+  protobuf_c_boolean has_state;
+  ButtonState state;
+  protobuf_c_boolean has_state_since;
+  int32_t state_since;
+};
+#define PROTO__BUTTON__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&proto__button__descriptor) \
+    , 0, BUTTON__NAME__PIT, 0, BUTTON__STATE__PRESSED, 0, 0 }
 
 
 struct  _ProtoMcuData
@@ -238,10 +300,12 @@ struct  _ProtoMcuData
   ProtoCarSensor *gas_warn;
   ProtoCarSensor *oil_warn;
   ProtoLoraConfig *lora_config;
+  ProtoOdb2Data *odb2;
+  ProtoShiftlightConfig *shiftlight_config;
 };
 #define PROTO__MCU__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__mcu__data__descriptor) \
-    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL, NULL, NULL, NULL, NULL }
+    , 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0,NULL, 0,NULL, 0,NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
 
 struct  _ProtoUpdateData
@@ -253,10 +317,11 @@ struct  _ProtoUpdateData
   ProtoLapData *lap_data;
   ProtoStintData *stint_data;
   ProtoGpsData *gps_data;
+  ProtoOdb2Data *odb2;
 };
 #define PROTO__UPDATE__DATA__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__update__data__descriptor) \
-    , NULL, NULL, NULL, NULL, NULL, NULL }
+    , NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
 
 struct  _ProtoAckData
@@ -295,10 +360,12 @@ struct  _ProtoMessage
   ProtoLoRaData *lora_data;
   ProtoCommand *command_data;
   ProtoLoraStats *lora_stats;
+  size_t n_button_state;
+  ProtoButton **button_state;
 };
 #define PROTO__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&proto__message__descriptor) \
-    , NULL, NULL, NULL, NULL }
+    , NULL, NULL, NULL, NULL, 0,NULL }
 
 
 /* ProtoEvent methods */
@@ -453,6 +520,25 @@ ProtoLoraConfig *
 void   proto__lora__config__free_unpacked
                      (ProtoLoraConfig *message,
                       ProtobufCAllocator *allocator);
+/* ProtoOdb2Data methods */
+void   proto__odb2__data__init
+                     (ProtoOdb2Data         *message);
+size_t proto__odb2__data__get_packed_size
+                     (const ProtoOdb2Data   *message);
+size_t proto__odb2__data__pack
+                     (const ProtoOdb2Data   *message,
+                      uint8_t             *out);
+size_t proto__odb2__data__pack_to_buffer
+                     (const ProtoOdb2Data   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoOdb2Data *
+       proto__odb2__data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__odb2__data__free_unpacked
+                     (ProtoOdb2Data *message,
+                      ProtobufCAllocator *allocator);
 /* ProtoLoraStats methods */
 void   proto__lora__stats__init
                      (ProtoLoraStats         *message);
@@ -471,6 +557,44 @@ ProtoLoraStats *
                       const uint8_t       *data);
 void   proto__lora__stats__free_unpacked
                      (ProtoLoraStats *message,
+                      ProtobufCAllocator *allocator);
+/* ProtoShiftlightConfig methods */
+void   proto__shiftlight__config__init
+                     (ProtoShiftlightConfig         *message);
+size_t proto__shiftlight__config__get_packed_size
+                     (const ProtoShiftlightConfig   *message);
+size_t proto__shiftlight__config__pack
+                     (const ProtoShiftlightConfig   *message,
+                      uint8_t             *out);
+size_t proto__shiftlight__config__pack_to_buffer
+                     (const ProtoShiftlightConfig   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoShiftlightConfig *
+       proto__shiftlight__config__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__shiftlight__config__free_unpacked
+                     (ProtoShiftlightConfig *message,
+                      ProtobufCAllocator *allocator);
+/* ProtoButton methods */
+void   proto__button__init
+                     (ProtoButton         *message);
+size_t proto__button__get_packed_size
+                     (const ProtoButton   *message);
+size_t proto__button__pack
+                     (const ProtoButton   *message,
+                      uint8_t             *out);
+size_t proto__button__pack_to_buffer
+                     (const ProtoButton   *message,
+                      ProtobufCBuffer     *buffer);
+ProtoButton *
+       proto__button__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   proto__button__free_unpacked
+                     (ProtoButton *message,
                       ProtobufCAllocator *allocator);
 /* ProtoMcuData methods */
 void   proto__mcu__data__init
@@ -593,8 +717,17 @@ typedef void (*ProtoGpsData_Closure)
 typedef void (*ProtoLoraConfig_Closure)
                  (const ProtoLoraConfig *message,
                   void *closure_data);
+typedef void (*ProtoOdb2Data_Closure)
+                 (const ProtoOdb2Data *message,
+                  void *closure_data);
 typedef void (*ProtoLoraStats_Closure)
                  (const ProtoLoraStats *message,
+                  void *closure_data);
+typedef void (*ProtoShiftlightConfig_Closure)
+                 (const ProtoShiftlightConfig *message,
+                  void *closure_data);
+typedef void (*ProtoButton_Closure)
+                 (const ProtoButton *message,
                   void *closure_data);
 typedef void (*ProtoMcuData_Closure)
                  (const ProtoMcuData *message,
@@ -621,6 +754,9 @@ extern const ProtobufCEnumDescriptor    proto__severity__descriptor;
 extern const ProtobufCEnumDescriptor    proto__event__type__descriptor;
 extern const ProtobufCEnumDescriptor    proto__command__type__descriptor;
 extern const ProtobufCEnumDescriptor    proto__lora__type__descriptor;
+extern const ProtobufCEnumDescriptor    shiftlight__mode__descriptor;
+extern const ProtobufCEnumDescriptor    button__name__descriptor;
+extern const ProtobufCEnumDescriptor    button__state__descriptor;
 extern const ProtobufCMessageDescriptor proto__event__descriptor;
 extern const ProtobufCMessageDescriptor proto__command__descriptor;
 extern const ProtobufCMessageDescriptor proto__car__sensor__descriptor;
@@ -629,7 +765,10 @@ extern const ProtobufCMessageDescriptor proto__lap__descriptor;
 extern const ProtobufCMessageDescriptor proto__lap__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__gps__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__lora__config__descriptor;
+extern const ProtobufCMessageDescriptor proto__odb2__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__lora__stats__descriptor;
+extern const ProtobufCMessageDescriptor proto__shiftlight__config__descriptor;
+extern const ProtobufCMessageDescriptor proto__button__descriptor;
 extern const ProtobufCMessageDescriptor proto__mcu__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__update__data__descriptor;
 extern const ProtobufCMessageDescriptor proto__ack__data__descriptor;

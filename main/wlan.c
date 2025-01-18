@@ -2,13 +2,8 @@
 
 #define EXAMPLE_ESP_MAXIMUM_RETRY  10
 
-#if PRIMARY
-    #define CONFIG_SSID "funkbox-car-prim"
-    #define CONFIG_PWD "funkbox-car-prim"
-#else
-    #define CONFIG_SSID "funkbox-car-sec"
-    #define CONFIG_PWD "funkbox-car-sec"
-#endif
+char WLAN_SSID_RES[50] = {};
+char WLAN_PWD_RES[50] = {};
 
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_BOTH
@@ -115,9 +110,24 @@ esp_err_t wifi_init_sta(void)
     return ESP_FAIL;
 }
 
+void extract_credentials() {
+        strcpy(WLAN_SSID_RES, CONFIG_SSID);
+        strcpy(WLAN_PWD_RES, CONFIG_PWD);
+        
+        #if PRIMARY
+            strcat(WLAN_SSID_RES, "prim");
+            strcat(WLAN_PWD_RES, "prim");
+        #else
+            strcat(WLAN_SSID_RES, "sec");
+            strcat(WLAN_PWD_RES, "sec");
+    #endif
+}
+
 void wlan_start() {
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     
+    extract_credentials();
+
     esp_netif_create_default_wifi_sta();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
