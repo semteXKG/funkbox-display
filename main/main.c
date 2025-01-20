@@ -246,8 +246,8 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
 
-    wlan_start();
-    broadcast_socket_start();
+    esp_netif_t* interface = wlan_start();
+    broadcast_socket_start(interface);
     data_start();
 
     ESP_LOGI(TAG, "Install RGB LCD panel driver");

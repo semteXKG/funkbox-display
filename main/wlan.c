@@ -72,8 +72,8 @@ esp_err_t wifi_init_sta(void)
         },
     };
 
-    strcpy((char*)wifi_config.sta.ssid, CONFIG_SSID);
-    strcpy((char*)wifi_config.sta.password, CONFIG_PWD);
+    strcpy((char*)wifi_config.sta.ssid, WLAN_SSID_RES);
+    strcpy((char*)wifi_config.sta.password, WLAN_PWD_RES);
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
@@ -99,7 +99,7 @@ esp_err_t wifi_init_sta(void)
         char ip_addr[16];
         inet_ntoa_r(ip_info.ip.addr, ip_addr, 16);
 
-        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s and ip %s", CONFIG_SSID, CONFIG_PWD, ip_addr);
+        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s and ip %s", WLAN_SSID_RES, WLAN_PWD_RES, ip_addr);
 
         return ESP_OK;
     } else if (bits & WIFI_FAIL_BIT) {
@@ -123,16 +123,17 @@ void extract_credentials() {
     #endif
 }
 
-void wlan_start() {
+esp_netif_t* wlan_start() {
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     
     extract_credentials();
 
-    esp_netif_create_default_wifi_sta();
+    esp_netif_t* netif = esp_netif_create_default_wifi_sta();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
     if (wifi_init_sta() != 0) {
         ESP_LOGW(TAG, "Could not connect");
     }
+    return netif;
 }

@@ -35,7 +35,7 @@ void parse_proto(void* binary_message, size_t len) {
         ProtoMcuData* new_mcu_data = proto__mcu__data__unpack(NULL, size, &buffer[0]);  
             
         if (xSemaphoreTake(get_data_mutex(), pdMS_TO_TICKS(10)) == pdTRUE) {
-            ESP_LOGI(TAG_BC, "Updating mcu data");
+            ESP_LOGD(TAG_BC, "Updating mcu data");
             if(get_data() != NULL) {
                 proto__mcu__data__free_unpacked(get_data(), NULL);
             }
@@ -229,11 +229,11 @@ void listen_broadcast(void *pvParameters)
                         inet_ntoa_r(((struct sockaddr_in *)&raddr)->sin_addr,
                                     raddr_name, sizeof(raddr_name)-1);
                     }
-                    ESP_LOGI(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
+                    ESP_LOGD(TAG_BC,"received %d bytes from %s: ", len, raddr_name);
                      
                     parse_proto(recvbuf, len);
                     
-                    ESP_LOGI(TAG_BC,"Done");
+                    ESP_LOGD(TAG_BC,"Done");
                 }
             }
         }
@@ -242,11 +242,9 @@ void listen_broadcast(void *pvParameters)
         shutdown(sock, 0);
         close(sock);
     }
-
 }
 
 
-void broadcast_socket_start() {
-  esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-  xTaskCreate(&listen_broadcast, "listen_task", 8192, netif, 5, NULL);
+void broadcast_socket_start(esp_netif_t* netif) {
+    xTaskCreate(&listen_broadcast, "listen_task", 8192, netif, 5, NULL);
 }

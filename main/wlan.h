@@ -14,4 +14,4 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-void wlan_start();
+esp_netif_t* wlan_start();
