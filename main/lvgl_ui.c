@@ -18,7 +18,7 @@ lv_obj_t* lap_timer_desc_obj;
 lv_obj_t* radio_desc_obj;
 lv_obj_t* oil_obj;
 lv_obj_t* gps_obj;
-lv_obj_t* gas_obj;
+lv_obj_t* gas_coolant_obj;
 lv_obj_t* oil_desc_obj;
 lv_obj_t* gps_desc_obj;
 lv_obj_t* gas_desc_obj;
@@ -38,7 +38,7 @@ lv_obj_t* gps_spd_message;
 lv_obj_t* gps_coord_message;
 lv_obj_t* oil_temp_message;
 lv_obj_t* oil_pres_message;
-lv_obj_t* gas_pres_message; 
+lv_obj_t* gas_coolant_message; 
 
 lv_obj_t* lap_number_labels[5];
 lv_obj_t* lap_time_labels[5];
@@ -125,7 +125,7 @@ void create_desc_containers_right(lv_obj_t* screen) {
 
     gas_desc_obj = lv_obj_create(screen);
     lv_obj_set_size(gas_desc_obj, DESC_WIDTH, 160);
-    lv_obj_align_to(gas_desc_obj, gas_obj, LV_ALIGN_OUT_LEFT_MID, 7, 0);
+    lv_obj_align_to(gas_desc_obj, gas_coolant_obj, LV_ALIGN_OUT_LEFT_MID, 7, 0);
     lv_obj_move_background(gas_desc_obj);
     apply_styling(gas_desc_obj, LV_BORDER_SIDE_LEFT);
 
@@ -152,13 +152,19 @@ void create_desc_labels_right(lv_obj_t* screen) {
     lv_obj_set_style_text_align(h2o_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(h2o_desc_lbl, LV_ALIGN_CENTER, -2, 0);
 
-    lv_obj_t* gas_desc_lbl = lv_label_create(gas_desc_obj);
-    lv_obj_add_style(gas_desc_lbl, &style, 0);
-    lv_label_set_text(gas_desc_lbl, "G\nA\nS");
-    lv_obj_set_style_text_color(gas_desc_lbl, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(gas_desc_lbl, &lv_immono_20, 0);
-    lv_obj_set_style_text_align(gas_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(gas_desc_lbl, LV_ALIGN_CENTER, -2, 0);
+    lv_obj_t* gas_coolant_desc_lbl = lv_label_create(gas_desc_obj);
+    lv_obj_add_style(gas_coolant_desc_lbl, &style, 0);
+    
+    #ifdef COOLANT
+        lv_label_set_text(gas_coolant_desc_lbl, "C\nO\nO\nL");
+    #else
+        lv_label_set_text(gas_coolant_desc_lbl, "G\nA\nS");
+    #endif
+    
+    lv_obj_set_style_text_color(gas_coolant_desc_lbl, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(gas_coolant_desc_lbl, &lv_immono_20, 0);
+    lv_obj_set_style_text_align(gas_coolant_desc_lbl, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(gas_coolant_desc_lbl, LV_ALIGN_CENTER, -2, 0);
 }
 
 void create_desc_containers_left(lv_obj_t* screen) {
@@ -306,24 +312,32 @@ void create_oil_status(lv_obj_t* screen) {
     lv_obj_align(oil_pres_curency, LV_ALIGN_BOTTOM_RIGHT, 0, -8);
 }
 
-void create_gas_status(lv_obj_t* screen) {
-    gas_obj = lv_obj_create(screen);
-    lv_obj_set_size(gas_obj, COL_WIDTH, 160);
-    lv_obj_set_pos(gas_obj, WIDTH-COL_WIDTH, 480 - 160);
-    apply_styling(gas_obj, LV_BORDER_SIDE_LEFT);
+void create_coolant_gas_status(lv_obj_t* screen) {
+    gas_coolant_obj = lv_obj_create(screen);
+    lv_obj_set_size(gas_coolant_obj, COL_WIDTH, 160);
+    lv_obj_set_pos(gas_coolant_obj, WIDTH-COL_WIDTH, 480 - 160);
+    apply_styling(gas_coolant_obj, LV_BORDER_SIDE_LEFT);
 
 
-    gas_pres_message = lv_label_create(gas_obj);
-    lv_obj_set_style_text_font(gas_pres_message, &lv_immono_48, 0);
-    lv_label_set_text(gas_pres_message, "2.3");
-    lv_obj_set_style_text_color(gas_pres_message, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(gas_pres_message, LV_ALIGN_LEFT_MID, 0, 0);
+    gas_coolant_message = lv_label_create(gas_coolant_obj);
+    lv_obj_set_style_text_font(gas_coolant_message, &lv_immono_48, 0);
+    #ifdef COOLANT
+        lv_label_set_text(gas_coolant_message, "87");
+    #else
+        lv_label_set_text(gas_coolant_message, "2.3");
+    #endif
+    lv_obj_set_style_text_color(gas_coolant_message, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(gas_coolant_message, LV_ALIGN_LEFT_MID, 0, 0);
 
-    lv_obj_t* gas_pres_currency = lv_label_create(gas_obj);
-    lv_obj_set_style_text_font(gas_pres_currency, &lv_immono_20, 0);
-    lv_label_set_text(gas_pres_currency, "bar");
-    lv_obj_set_style_text_color(gas_pres_currency, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(gas_pres_currency, LV_ALIGN_RIGHT_MID, 0, 0);
+    lv_obj_t* gas_coolant_symbol = lv_label_create(gas_coolant_obj);
+    lv_obj_set_style_text_font(gas_coolant_symbol, &lv_immono_20, 0);
+    #ifdef COOLANT
+        lv_label_set_text(gas_coolant_symbol, "°C");
+    #else
+        lv_label_set_text(gas_coolant_symbol, "bar");
+    #endif
+    lv_obj_set_style_text_color(gas_coolant_symbol, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(gas_coolant_symbol, LV_ALIGN_RIGHT_MID, 0, 0);
 }
 
 void create_lap_child_element(lv_obj_t* container, int i) {
@@ -414,7 +428,7 @@ void create_content(lv_obj_t* screen) {
 
     create_h2o_status(screen);
     create_oil_status(screen);
-    create_gas_status(screen);
+    create_coolant_gas_status(screen);
 
     create_main_laps(screen);
 
@@ -602,6 +616,7 @@ void lvgl_set_stint_timer(bool enabled, bool running, int64_t target, int64_t el
 double prev_oil_checksum = -1;
 double prev_water_checksum = -1;
 double prev_gas_checksum = -1;
+long prev_coolant_checksum = -1;
 void lvgl_set_temperatures(ProtoMcuData* data) {
     char temp[10];
     if (data->oil == NULL || data->water == NULL || data->gas == NULL) {
@@ -623,21 +638,36 @@ void lvgl_set_temperatures(ProtoMcuData* data) {
         }    
     }
 
-    if(prev_gas_checksum != data->gas->preassure) {
+    #ifdef COOLANT 
+    if(prev_coolant_checksum != data->odb2->coolant) {
+        prev_coolant_checksum = data->odb2->coolant;
+        sprintf(temp, "%ld", data->odb2->coolant);
+        
+        lv_label_set_text(gas_coolant_message, temp); 
+
+        if(data->odb2->coolant > 120) {
+            draw_as_critical(gas_coolant_obj, gas_coolant_message);
+        } else {
+            draw_as_normal(gas_coolant_obj, gas_coolant_message);
+        }
+    }
+    #else
+        if(prev_gas_checksum != data->gas->preassure) {
         prev_gas_checksum = data->gas->preassure;
         if(data->gas->preassure > 99 || data->gas->preassure < 0) {
             sprintf(temp, "%0.1f", 0.0);
         } else {
             sprintf(temp, "%0.1f", data->gas->preassure);
         }
-        lv_label_set_text(gas_pres_message, temp); 
+        lv_label_set_text(gas_coolant_message, temp); 
 
         if(data->gas->preassure < data->gas_warn->preassure) {
-            draw_as_critical(gas_obj, gas_pres_message);
+            draw_as_critical(gas_coolant_obj, gas_coolant_message);
         } else {
-            draw_as_normal(gas_obj, gas_pres_message);
+            draw_as_normal(gas_coolant_obj, gas_coolant_message);
         }
     }
+    #endif
 }
 
 char* type_to_string(ProtoCommandType type) {
@@ -718,8 +748,10 @@ void lvgl_update_data() {
         lvgl_set_last_comms(data->network_time_adjustment, data);
         lvgl_set_temperatures(data);
         lvgl_set_gps(data->gps);
-        if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
-            lvgl_set_events(data, main_events_obj, main_events_label);
+        if(!lvgl_set_pitstop_since(data, main_events_obj, main_events_label)) {
+            if(!lvgl_set_commands(data, main_events_obj, main_events_label)) {
+                lvgl_set_events(data, main_events_obj, main_events_label);
+            }
         }
     //    ESP_LOGI(TAG_MAIN, "SEMAPHORE_GIVEN");
         xSemaphoreGive(get_data_mutex());

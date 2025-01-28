@@ -1364,7 +1364,7 @@ const ProtobufCMessageDescriptor proto__lora__config__descriptor =
   (ProtobufCMessageInit) proto__lora__config__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__odb2__data__field_descriptors[1] =
+static const ProtobufCFieldDescriptor proto__odb2__data__field_descriptors[2] =
 {
   {
     "rpm",
@@ -1378,14 +1378,27 @@ static const ProtobufCFieldDescriptor proto__odb2__data__field_descriptors[1] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "coolant",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    offsetof(ProtoOdb2Data, has_coolant),
+    offsetof(ProtoOdb2Data, coolant),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__odb2__data__field_indices_by_name[] = {
+  1,   /* field[1] = coolant */
   0,   /* field[0] = rpm */
 };
 static const ProtobufCIntRange proto__odb2__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 1 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor proto__odb2__data__descriptor =
 {
@@ -1395,7 +1408,7 @@ const ProtobufCMessageDescriptor proto__odb2__data__descriptor =
   "ProtoOdb2Data",
   "",
   sizeof(ProtoOdb2Data),
-  1,
+  2,
   proto__odb2__data__field_descriptors,
   proto__odb2__data__field_indices_by_name,
   1,  proto__odb2__data__number_ranges,
@@ -1607,7 +1620,7 @@ const ProtobufCMessageDescriptor proto__button__descriptor =
   (ProtobufCMessageInit) proto__button__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[16] =
+static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[17] =
 {
   {
     "network_time_adjustment",
@@ -1801,6 +1814,18 @@ static const ProtobufCFieldDescriptor proto__mcu__data__field_descriptors[16] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "pitstop_since",
+    17,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT64,
+    offsetof(ProtoMcuData, has_pitstop_since),
+    offsetof(ProtoMcuData, pitstop_since),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned proto__mcu__data__field_indices_by_name[] = {
   7,   /* field[7] = events */
@@ -1815,6 +1840,7 @@ static const unsigned proto__mcu__data__field_indices_by_name[] = {
   3,   /* field[3] = oil */
   12,   /* field[12] = oil_warn */
   8,   /* field[8] = outgoing_commands */
+  16,   /* field[16] = pitstop_since */
   1,   /* field[1] = send_timestamp */
   15,   /* field[15] = shiftlight_config */
   5,   /* field[5] = stint */
@@ -1823,7 +1849,7 @@ static const unsigned proto__mcu__data__field_indices_by_name[] = {
 static const ProtobufCIntRange proto__mcu__data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 16 }
+  { 0, 17 }
 };
 const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
 {
@@ -1833,7 +1859,7 @@ const ProtobufCMessageDescriptor proto__mcu__data__descriptor =
   "ProtoMcuData",
   "",
   sizeof(ProtoMcuData),
-  16,
+  17,
   proto__mcu__data__field_descriptors,
   proto__mcu__data__field_indices_by_name,
   1,  proto__mcu__data__number_ranges,

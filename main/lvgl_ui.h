@@ -8,6 +8,7 @@
 #include "esp_timer.h"
 #include "event_display.h"
 #include "command_display.h"
+#include "pitstop_display.h"
 
 void lvgl_draw_main_ui(lv_disp_t *disp);
 void lvgl_update_data();
